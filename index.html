@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UNIQALITY HUB</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --indigo-deep: #1A237E;
+    --indigo-mid:  #283593;
+    --indigo-light:#3949AB;
+    --accent:      #7C4DFF;
+    --accent2:     #00BCD4;
+    --surface:     #F4F6FF;
+    --card:        #FFFFFF;
+    --text-main:   #1A1A2E;
+    --text-sub:    #5C6BC0;
+    --border:      #C5CAE9;
+    --error:       #EF5350;
+    --success:     #66BB6A;
+    --badge:       #FF1744;
+    --shadow:      0 8px 32px rgba(26,35,126,0.18);
+    --shadow-card: 0 4px 24px rgba(26,35,126,0.13);
+    --radius-card: 25px;
+    --font-head:   'Space Grotesk', sans-serif;
+    --font-body:   'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--surface);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ─── SPLASH ─── */
+  #splash {
+    position: fixed; inset: 0; z-index: 100;
+    background: linear-gradient(135deg, var(--indigo-deep) 0%, var(--accent) 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px;
+  }
+  .splash-logo {
+    width: 90px; height: 90px; border-radius: 26px;
+    background: rgba(255,255,255,0.13);
+    border: 2.5px solid rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+    animation: splash-pop 0.7s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes splash-pop { from{transform:scale(0.4);opacity:0} to{transform:scale(1);opacity:1} }
+  .splash-logo svg { width: 46px; height: 46px; fill: #fff; }
+  .splash-title {
+    font-family: var(--font-head); font-size: 2rem; font-weight: 700;
+    color: #fff; letter-spacing: 2px;
+    animation: fade-up 0.6s 0.3s both;
+  }
+  .splash-sub {
+    font-size: .85rem; color: rgba(255,255,255,0.65); letter-spacing: 1px;
+    animation: fade-up 0.6s 0.5s both;
+  }
+  .splash-bar {
+    margin-top: 28px; width: 160px; height: 4px;
+    background: rgba(255,255,255,0.18); border-radius: 4px; overflow: hidden;
+    animation: fade-up 0.6s 0.7s both;
+  }
+  .splash-bar-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.6), #fff);
+    animation: bar-slide 1.8s 0.8s ease both;
+  }
+  @keyframes bar-slide { from{width:0} to{width:100%} }
+  @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+  .splash-hidden { animation: fade-out 0.4s forwards; }
+  @keyframes fade-out { to{opacity:0;pointer-events:none} }
+
+  /* ─── APP SHELL ─── */
+  #app { display: none; flex-direction: column; height: 100vh; }
+  #app.visible { display: flex; }
+
+  /* ─── TOP APP BAR ─── */
+  .top-bar {
+    background: linear-gradient(90deg, var(--indigo-deep) 60%, var(--indigo-light) 100%);
+    color: #fff;
+    padding: 14px 20px 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(26,35,126,0.22);
+    flex-shrink: 0;
+    position: relative; z-index: 10;
+  }
+  .top-bar-left { display: flex; align-items: center; gap: 12px; }
+  .top-bar-logo { width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center; }
+  .top-bar-logo svg { width: 20px; height: 20px; fill: #fff; }
+  .top-bar-title { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; }
+  .top-bar-right { display: flex; align-items: center; gap: 6px; }
+  .lang-btn {
+    background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.25);
+    color: #fff; border-radius: 8px; padding: 4px 8px; font-size: .72rem;
+    font-family: var(--font-body); cursor: pointer; font-weight: 600; letter-spacing: .5px;
+    transition: background .2s;
+  }
+  .lang-btn:hover { background: rgba(255,255,255,0.25); }
+  .lang-btn.active { background: rgba(255,255,255,0.3); border-color: #fff; }
+  .logout-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; border-radius: 8px; padding: 6px 10px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px; font-size: .8rem;
+    font-family: var(--font-body); transition: background .2s;
+  }
+  .logout-btn:hover { background: rgba(239,83,80,0.35); }
+
+  /* ─── CONTENT ─── */
+  .content-area { flex: 1; overflow-y: auto; position: relative; }
+  .tab-panel { display: none; padding: 20px; height: 100%; }
+  .tab-panel.active { display: block; animation: tab-in 0.25s ease; }
+  @keyframes tab-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  /* ─── BOTTOM NAV ─── */
+  .bottom-nav {
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: stretch;
+    box-shadow: 0 -4px 20px rgba(26,35,126,0.09);
+    flex-shrink: 0;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 3px; padding: 10px 0;
+    cursor: pointer; border: none; background: transparent;
+    color: var(--text-sub); font-family: var(--font-body);
+    font-size: .68rem; font-weight: 500; transition: all .2s;
+    position: relative;
+  }
+  .nav-item.active { color: var(--indigo-deep); }
+  .nav-item svg { width: 22px; height: 22px; transition: transform .2s; }
+  .nav-item.active svg { transform: scale(1.15); }
+  .nav-indicator {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 32px; height: 3px; border-radius: 0 0 3px 3px;
+    background: var(--indigo-deep); opacity: 0; transition: opacity .2s;
+  }
+  .nav-item.active .nav-indicator { opacity: 1; }
+  .badge-wrap { position: relative; display: inline-flex; }
+  .badge {
+    position: absolute; top: -5px; right: -7px;
+    background: var(--badge); color: #fff;
+    width: 17px; height: 17px; border-radius: 50%;
+    font-size: .6rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--card);
+    animation: badge-pop .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes badge-pop { from{transform:scale(0)} to{transform:scale(1)} }
+  .badge.hidden { display: none; }
+
+  /* ─── LOGIN ─── */
+  #login-screen {
+    position: fixed; inset: 0; z-index: 50;
+    background: linear-gradient(135deg, var(--indigo-deep) 0%, #4527A0 50%, var(--accent2) 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-particles {
+    position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  }
+  .particle {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+    animation: float-p linear infinite;
+  }
+  @keyframes float-p {
+    from{transform:translateY(100vh) rotate(0deg)}
+    to{transform:translateY(-200px) rotate(360deg)}
+  }
+  .login-card {
+    position: relative; z-index: 2;
+    background: var(--card);
+    border-radius: var(--radius-card);
+    padding: 40px 36px 36px;
+    width: min(92vw, 400px);
+    box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.08);
+    animation: card-rise .5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes card-rise { from{opacity:0;transform:translateY(40px) scale(0.95)} to{opacity:1;transform:none} }
+  .login-icon-wrap {
+    width: 68px; height: 68px; border-radius: 20px; margin: 0 auto 18px;
+    background: linear-gradient(135deg, var(--indigo-deep), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 24px rgba(26,35,126,0.3);
+  }
+  .login-icon-wrap svg { width: 34px; height: 34px; fill: #fff; }
+  .login-title {
+    font-family: var(--font-head); font-size: 1.5rem; font-weight: 700;
+    text-align: center; color: var(--indigo-deep); margin-bottom: 4px;
+  }
+  .login-sub { text-align: center; font-size: .83rem; color: var(--text-sub); margin-bottom: 28px; }
+  .field-group { margin-bottom: 16px; }
+  .field-label {
+    display: block; font-size: .78rem; font-weight: 600; color: var(--text-sub);
+    margin-bottom: 6px; letter-spacing: .3px;
+  }
+  .field-wrap { position: relative; }
+  .field-wrap svg {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 18px; height: 18px; fill: var(--border); pointer-events: none;
+  }
+  .text-field {
+    width: 100%; padding: 12px 12px 12px 40px;
+    border: 1.5px solid var(--border); border-radius: 12px;
+    font-family: var(--font-body); font-size: .9rem; color: var(--text-main);
+    background: var(--surface); outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .text-field:focus { border-color: var(--indigo-light); box-shadow: 0 0 0 3px rgba(57,73,171,0.12); }
+  .text-field.error { border-color: var(--error); }
+  .error-msg { color: var(--error); font-size: .75rem; margin-top: 5px; display: none; }
+  .error-msg.show { display: block; }
+  .login-btn {
+    width: 100%; padding: 13px; margin-top: 8px;
+    background: linear-gradient(135deg, var(--indigo-deep), var(--accent));
+    color: #fff; border: none; border-radius: 12px;
+    font-family: var(--font-head); font-size: .95rem; font-weight: 700;
+    letter-spacing: .5px; cursor: pointer;
+    box-shadow: 0 4px 18px rgba(26,35,126,0.3);
+    transition: transform .15s, box-shadow .15s, opacity .15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(26,35,126,0.4); }
+  .login-btn:active { transform: scale(0.98); }
+  .login-btn svg { width: 18px; height: 18px; fill: #fff; }
+
+  /* ─── CARDS ─── */
+  .section-title {
+    font-family: var(--font-head); font-size: 1rem; font-weight: 700;
+    color: var(--indigo-deep); margin-bottom: 14px; letter-spacing: .3px;
+  }
+  .card {
+    background: var(--card); border-radius: 16px;
+    box-shadow: var(--shadow-card); padding: 18px;
+    border: 1px solid rgba(197,202,233,0.5);
+    margin-bottom: 14px;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(26,35,126,0.18); }
+
+  /* ─── MAIL TAB ─── */
+  .mail-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 0; border-bottom: 1px solid rgba(197,202,233,0.35);
+    cursor: pointer;
+  }
+  .mail-item:last-child { border-bottom: none; }
+  .mail-avatar {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-head); font-weight: 700; font-size: .95rem; color: #fff;
+    flex-shrink: 0;
+  }
+  .mail-meta { flex: 1; min-width: 0; }
+  .mail-sender { font-weight: 600; font-size: .88rem; }
+  .mail-subject { font-size: .8rem; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .mail-time { font-size: .72rem; color: var(--text-sub); flex-shrink: 0; margin-top: 2px; }
+  .mail-unread-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--indigo-light); flex-shrink: 0; margin-top: 5px;
+  }
+  .mail-fab {
+    position: fixed; bottom: 80px; right: 20px;
+    width: 54px; height: 54px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--indigo-deep), var(--accent));
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 22px rgba(26,35,126,0.35);
+    transition: transform .2s;
+  }
+  .mail-fab:hover { transform: scale(1.08); }
+  .mail-fab svg { width: 24px; height: 24px; fill: #fff; }
+
+  /* ─── ALERTS TAB ─── */
+  .alert-item {
+    display: flex; gap: 12px; align-items: center;
+    padding: 14px; border-radius: 14px; margin-bottom: 10px;
+    border: 1px solid rgba(197,202,233,0.4);
+    background: var(--card);
+    transition: transform .15s;
+  }
+  .alert-item:hover { transform: translateX(3px); }
+  .alert-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .alert-icon svg { width: 22px; height: 22px; }
+  .alert-icon.warn { background: rgba(255,152,0,0.12); }
+  .alert-icon.warn svg { fill: #FB8C00; }
+  .alert-icon.info { background: rgba(0,188,212,0.12); }
+  .alert-icon.info svg { fill: #00ACC1; }
+  .alert-icon.ok { background: rgba(102,187,106,0.12); }
+  .alert-icon.ok svg { fill: #43A047; }
+  .alert-icon.err { background: rgba(239,83,80,0.12); }
+  .alert-icon.err svg { fill: var(--error); }
+  .alert-text { flex: 1; }
+  .alert-title-t { font-weight: 600; font-size: .88rem; }
+  .alert-desc { font-size: .78rem; color: var(--text-sub); margin-top: 2px; }
+  .alert-time { font-size: .72rem; color: var(--text-sub); white-space: nowrap; }
+  .dismiss-btn {
+    background: none; border: none; cursor: pointer; color: var(--text-sub);
+    padding: 4px; border-radius: 6px; transition: color .15s, background .15s;
+    display: flex;
+  }
+  .dismiss-btn:hover { color: var(--error); background: rgba(239,83,80,0.08); }
+  .dismiss-btn svg { width: 16px; height: 16px; fill: currentColor; }
+  .no-alerts {
+    text-align: center; padding: 50px 20px; color: var(--text-sub);
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .no-alerts svg { width: 52px; height: 52px; fill: var(--border); }
+
+  /* ─── PROFILE TAB ─── */
+  .profile-hero {
+    background: linear-gradient(135deg, var(--indigo-deep), var(--accent));
+    border-radius: 20px; padding: 24px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .avatar-ring {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    border: 3px solid rgba(255,255,255,0.45);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-head); font-size: 1.6rem; font-weight: 700; color: #fff;
+    cursor: pointer; transition: transform .2s, background .2s; flex-shrink: 0;
+    position: relative; overflow: hidden;
+  }
+  .avatar-ring:hover { transform: scale(1.05); background: rgba(255,255,255,0.28); }
+  .avatar-ring img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .profile-info { flex: 1; min-width: 0; }
+  .profile-name { font-family: var(--font-head); font-size: 1.2rem; font-weight: 700; color: #fff; }
+  .profile-role { font-size: .8rem; color: rgba(255,255,255,0.7); margin-top: 3px; }
+  .profile-edit {
+    background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 10px; padding: 7px 13px; color: #fff; cursor: pointer;
+    font-family: var(--font-body); font-size: .78rem; font-weight: 600;
+    display: flex; align-items: center; gap: 6px; transition: background .2s; white-space: nowrap;
+  }
+  .profile-edit:hover { background: rgba(255,255,255,0.28); }
+  .profile-edit svg { width: 14px; height: 14px; fill: #fff; }
+  .stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-card {
+    background: var(--card); border-radius: 14px; padding: 14px 10px;
+    text-align: center; border: 1px solid var(--border);
+    box-shadow: 0 2px 10px rgba(26,35,126,0.07);
+  }
+  .stat-num { font-family: var(--font-head); font-size: 1.4rem; font-weight: 700; color: var(--indigo-deep); }
+  .stat-lbl { font-size: .7rem; color: var(--text-sub); margin-top: 3px; }
+  .menu-item {
+    display: flex; align-items: center; gap: 13px; padding: 14px 16px;
+    cursor: pointer; border-radius: 12px; transition: background .15s;
+  }
+  .menu-item:hover { background: var(--surface); }
+  .menu-icon {
+    width: 40px; height: 40px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .menu-icon svg { width: 20px; height: 20px; }
+  .menu-label { flex: 1; font-weight: 500; font-size: .9rem; }
+  .menu-chevron svg { width: 16px; height: 16px; fill: var(--border); }
+
+  /* ─── FILE UPLOAD ─── */
+  .file-upload-zone {
+    border: 2px dashed var(--border); border-radius: 16px;
+    padding: 28px; text-align: center; cursor: pointer;
+    transition: border-color .2s, background .2s;
+    margin-top: 8px;
+  }
+  .file-upload-zone:hover { border-color: var(--indigo-light); background: rgba(57,73,171,0.04); }
+  .file-upload-zone svg { width: 36px; height: 36px; fill: var(--border); margin-bottom: 8px; }
+  .file-upload-zone p { font-size: .83rem; color: var(--text-sub); }
+  #file-input { display: none; }
+  .avatar-preview { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+    display: none; align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--card); border-radius: 24px 24px 0 0;
+    width: 100%; max-width: 480px; padding: 24px 24px 32px;
+    max-height: 85vh; overflow-y: auto;
+    animation: sheet-up .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes sheet-up { from{transform:translateY(100%)} to{transform:none} }
+  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
+  .modal-title { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; color: var(--indigo-deep); margin-bottom: 16px; }
+  .modal-close {
+    float: right; background: var(--surface); border: none; border-radius: 8px;
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-sub);
+  }
+  .modal-close svg { width: 16px; height: 16px; fill: currentColor; }
+  textarea.text-field { padding: 12px; min-height: 90px; resize: vertical; font-size: .88rem; }
+  .send-btn {
+    width: 100%; padding: 12px; margin-top: 12px;
+    background: linear-gradient(135deg, var(--indigo-deep), var(--accent));
+    color: #fff; border: none; border-radius: 12px;
+    font-family: var(--font-head); font-size: .92rem; font-weight: 700;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(26,35,126,0.28);
+    transition: transform .15s; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .send-btn:hover { transform: translateY(-1px); }
+  .send-btn svg { width: 16px; height: 16px; fill: #fff; }
+
+  /* ─── TOAST ─── */
+  .toast-container { position: fixed; top: 70px; right: 16px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--indigo-deep); color: #fff; border-radius: 12px;
+    padding: 11px 16px; font-size: .82rem; font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2); min-width: 200px; max-width: 280px;
+    display: flex; align-items: center; gap: 8px;
+    animation: toast-in .3s ease;
+  }
+  .toast.success { background: #2E7D32; }
+  .toast.error { background: var(--error); }
+  @keyframes toast-in { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:none} }
+  .toast svg { width: 16px; height: 16px; fill: #fff; flex-shrink: 0; }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ─── CHIP ─── */
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(57,73,171,0.1); border-radius: 20px;
+    padding: 4px 10px; font-size: .74rem; font-weight: 600; color: var(--indigo-light);
+  }
+</style>
+<link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<!-- ═══════════════════════════════ SPLASH ═══════════════════════════════ -->
+<div id="splash">
+  <div class="login-particles" id="splash-particles"></div>
+  <div class="splash-logo">
+    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+  </div>
+  <div class="splash-title">UNIQALITY HUB</div>
+  <div class="splash-sub">ENTERPRISE PLATFORM</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+
+<!-- ═══════════════════════════════ LOGIN ════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-particles" id="login-particles"></div>
+  <div class="login-card">
+    <div class="login-icon-wrap">
+      <!-- lock_person_rounded icon -->
+      <svg viewBox="0 0 24 24">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v1c0 .55.45 1 1 1h14c.55 0 1-.45 1-1v-1c0-2.66-5.33-4-8-4z"/>
+        <path d="M16.5 13.5c-.28 0-.5.22-.5.5v.5h-1v-.5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v.5h-1v-.5c0-.83-.67-1.5-1.5-1.5z" opacity=".7"/>
+        <rect x="15" y="15" width="4" height="3" rx="1"/>
+      </svg>
+    </div>
+    <div class="login-title" id="lt-title">Bienvenido</div>
+    <div class="login-sub" id="lt-sub">Inicia sesión en tu cuenta</div>
+
+    <div class="field-group">
+      <label class="field-label" id="lt-user">Usuario</label>
+      <div class="field-wrap">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <input id="login-user" class="text-field" type="text" autocomplete="username"/>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label" id="lt-pass">Contraseña</label>
+      <div class="field-wrap">
+        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+        <input id="login-pass" class="text-field" type="password" autocomplete="current-password"/>
+      </div>
+      <div class="error-msg" id="login-error">Usuario o contraseña incorrectos</div>
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">
+      <svg viewBox="0 0 24 24"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
+      <span id="lt-btn">Iniciar Sesión</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ MAIN APP ═════════════════════════════ -->
+<div id="app">
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <div class="top-bar-logo">
+        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+      </div>
+      <span class="top-bar-title">UNIQALITY HUB</span>
+    </div>
+    <div class="top-bar-right">
+      <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
+      <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="btn-ca" onclick="setLang('ca')">CA</button>
+      <button class="logout-btn" onclick="doLogout()">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        <span id="lb-logout">Salir</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-area">
+    <!-- MAIL TAB -->
+    <div class="tab-panel active" id="tab-mail">
+      <div class="section-title" id="t-mail-title">Bandeja de Entrada</div>
+      <div class="card" style="padding:0 18px;">
+        <div id="mail-list"></div>
+      </div>
+      <button class="mail-fab" onclick="openComposeModal()" title="Nuevo mensaje">
+        <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+      </button>
+    </div>
+
+    <!-- ALERTS TAB -->
+    <div class="tab-panel" id="tab-alerts">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="section-title" id="t-alert-title" style="margin:0">Alertas</div>
+        <button onclick="clearAllAlerts()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:.75rem;color:var(--text-sub);cursor:pointer;font-family:var(--font-body);" id="t-clear-btn">Limpiar todo</button>
+      </div>
+      <div id="alerts-list"></div>
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div class="tab-panel" id="tab-profile">
+      <!-- Hero -->
+      <div class="profile-hero">
+        <div class="avatar-ring" id="avatar-btn" onclick="document.getElementById('file-input').click()">
+          <span id="avatar-initials">AD</span>
+          <img id="avatar-img" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="avatar"/>
+        </div>
+        <div class="profile-info">
+          <div class="profile-name" id="profile-name-txt">Admin User</div>
+          <div class="profile-role"><span class="chip" style="background:rgba(255,255,255,0.18);color:#fff;" id="t-role">Administrador</span></div>
+        </div>
+        <button class="profile-edit" onclick="openEditModal()">
+          <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          <span id="t-edit">Editar</span>
+        </button>
+      </div>
+      <input type="file" id="file-input" accept="image/*" onchange="handleFileChange(event)"/>
+
+      <!-- Stats -->
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-num">24</div><div class="stat-lbl" id="t-stat1">Correos</div></div>
+        <div class="stat-card"><div class="stat-num" id="alerts-count-stat">0</div><div class="stat-lbl" id="t-stat2">Alertas</div></div>
+        <div class="stat-card"><div class="stat-num">99</div><div class="stat-lbl" id="t-stat3">Días activo</div></div>
+      </div>
+
+      <!-- Menu -->
+      <div class="card" style="padding:8px;">
+        <div class="menu-item">
+          <div class="menu-icon" style="background:rgba(57,73,171,0.1);">
+            <svg viewBox="0 0 24 24" fill="var(--indigo-light)"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          </div>
+          <span class="menu-label" id="t-m-notif">Notificaciones</span>
+          <div class="menu-chevron"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon" style="background:rgba(0,188,212,0.1);">
+            <svg viewBox="0 0 24 24" fill="var(--accent2)"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          </div>
+          <span class="menu-label" id="t-m-settings">Configuración</span>
+          <div class="menu-chevron"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon" style="background:rgba(102,187,106,0.1);">
+            <svg viewBox="0 0 24 24" fill="#43A047"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+          </div>
+          <span class="menu-label" id="t-m-security">Seguridad</span>
+          <div class="menu-chevron"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+        </div>
+      </div>
+
+      <!-- File upload -->
+      <div class="card">
+        <div class="section-title" id="t-avatar-title" style="font-size:.88rem;">Cambiar Foto de Perfil</div>
+        <div class="file-upload-zone" onclick="document.getElementById('file-input').click()">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 9h-4v4h-4v-4H6l6-6 6 6z"/></svg>
+          <p id="t-upload">Toca para seleccionar una imagen</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-mail" onclick="switchTab('mail')">
+      <div class="nav-indicator"></div>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      <span id="nt-mail">Correo</span>
+    </button>
+    <button class="nav-item" id="nav-alerts" onclick="switchTab('alerts')">
+      <div class="nav-indicator"></div>
+      <div class="badge-wrap">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="badge hidden" id="alerts-badge">0</span>
+      </div>
+      <span id="nt-alerts">Alertas</span>
+    </button>
+    <button class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+      <div class="nav-indicator"></div>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span id="nt-profile">Perfil</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ═══════════════════════════════ MODALS ════════════════════════════════ -->
+<!-- Compose Modal -->
+<div class="modal-overlay" id="compose-modal" onclick="closeModal('compose-modal',event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('compose-modal')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    <div class="modal-title" id="t-compose-title">Nuevo Mensaje</div>
+    <div class="field-group">
+      <label class="field-label" id="t-to">Para</label>
+      <div class="field-wrap">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        <input id="compose-to" class="text-field" type="email" placeholder="destinatario@ejemplo.com"/>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label" id="t-subject">Asunto</label>
+      <div class="field-wrap">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        <input id="compose-subject" class="text-field" type="text"/>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label" id="t-message">Mensaje</label>
+      <textarea id="compose-body" class="text-field" style="padding:12px;"></textarea>
+    </div>
+    <button class="send-btn" onclick="sendMail()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      <span id="t-send">Enviar</span>
+    </button>
+  </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="edit-modal" onclick="closeModal('edit-modal',event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('edit-modal')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    <div class="modal-title" id="t-edit-title">Editar Perfil</div>
+    <div class="field-group">
+      <label class="field-label" id="t-name">Nombre</label>
+      <div class="field-wrap">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <input id="edit-name" class="text-field" type="text" value="Admin User"/>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label" id="t-email-label">Email</label>
+      <div class="field-wrap">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        <input id="edit-email" class="text-field" type="email" value="admin@uniqality.com"/>
+      </div>
+    </div>
+    <button class="send-btn" onclick="saveProfile()">
+      <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg>
+      <span id="t-save">Guardar</span>
+    </button>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ═══════════════════════════════ SCRIPT ════════════════════════════════ -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js');
+  });
+}
+/* ─── TRANSLATIONS ─── */
+const _texts = {
+  es: {
+    "lt-title":"Bienvenido","lt-sub":"Inicia sesión en tu cuenta","lt-user":"Usuario",
+    "lt-pass":"Contraseña","lt-btn":"Iniciar Sesión","login-error":"Usuario o contraseña incorrectos",
+    "lb-logout":"Salir","t-mail-title":"Bandeja de Entrada","t-alert-title":"Alertas",
+    "t-clear-btn":"Limpiar todo","t-role":"Administrador","t-edit":"Editar",
+    "t-stat1":"Correos","t-stat2":"Alertas","t-stat3":"Días activo",
+    "t-m-notif":"Notificaciones","t-m-settings":"Configuración","t-m-security":"Seguridad",
+    "t-avatar-title":"Cambiar Foto de Perfil","t-upload":"Toca para seleccionar una imagen",
+    "nt-mail":"Correo","nt-alerts":"Alertas","nt-profile":"Perfil",
+    "t-compose-title":"Nuevo Mensaje","t-to":"Para","t-subject":"Asunto",
+    "t-message":"Mensaje","t-send":"Enviar","t-edit-title":"Editar Perfil",
+    "t-name":"Nombre","t-email-label":"Email","t-save":"Guardar",
+    "toast-sent":"Mensaje enviado","toast-saved":"Perfil actualizado","toast-login-ok":"Bienvenido, Admin",
+    "toast-upload":"Foto actualizada",
+    "alert-new-mail":"Nuevo correo recibido","alert-backup":"Copia de seguridad completada",
+    "alert-update":"Actualización disponible","alert-error":"Error de sincronización",
+  },
+  en: {
+    "lt-title":"Welcome","lt-sub":"Sign in to your account","lt-user":"Username",
+    "lt-pass":"Password","lt-btn":"Sign In","login-error":"Wrong username or password",
+    "lb-logout":"Logout","t-mail-title":"Inbox","t-alert-title":"Alerts",
+    "t-clear-btn":"Clear all","t-role":"Administrator","t-edit":"Edit",
+    "t-stat1":"Emails","t-stat2":"Alerts","t-stat3":"Active days",
+    "t-m-notif":"Notifications","t-m-settings":"Settings","t-m-security":"Security",
+    "t-avatar-title":"Change Profile Photo","t-upload":"Tap to select an image",
+    "nt-mail":"Mail","nt-alerts":"Alerts","nt-profile":"Profile",
+    "t-compose-title":"New Message","t-to":"To","t-subject":"Subject",
+    "t-message":"Message","t-send":"Send","t-edit-title":"Edit Profile",
+    "t-name":"Name","t-email-label":"Email","t-save":"Save",
+    "toast-sent":"Message sent","toast-saved":"Profile updated","toast-login-ok":"Welcome, Admin",
+    "toast-upload":"Photo updated",
+    "alert-new-mail":"New email received","alert-backup":"Backup completed",
+    "alert-update":"Update available","alert-error":"Sync error",
+  },
+  ca: {
+    "lt-title":"Benvingut","lt-sub":"Inicia sessió al teu compte","lt-user":"Usuari",
+    "lt-pass":"Contrasenya","lt-btn":"Iniciar Sessió","login-error":"Usuari o contrasenya incorrectes",
+    "lb-logout":"Sortir","t-mail-title":"Safata d'Entrada","t-alert-title":"Alertes",
+    "t-clear-btn":"Esborrar-ho tot","t-role":"Administrador","t-edit":"Editar",
+    "t-stat1":"Correus","t-stat2":"Alertes","t-stat3":"Dies actiu",
+    "t-m-notif":"Notificacions","t-m-settings":"Configuració","t-m-security":"Seguretat",
+    "t-avatar-title":"Canviar Foto de Perfil","t-upload":"Toca per seleccionar una imatge",
+    "nt-mail":"Correu","nt-alerts":"Alertes","nt-profile":"Perfil",
+    "t-compose-title":"Nou Missatge","t-to":"Per a","t-subject":"Assumpte",
+    "t-message":"Missatge","t-send":"Enviar","t-edit-title":"Editar Perfil",
+    "t-name":"Nom","t-email-label":"Email","t-save":"Desar",
+    "toast-sent":"Missatge enviat","toast-saved":"Perfil actualitzat","toast-login-ok":"Benvingut, Admin",
+    "toast-upload":"Foto actualitzada",
+    "alert-new-mail":"Nou correu rebut","alert-backup":"Còpia de seguretat completada",
+    "alert-update":"Actualització disponible","alert-error":"Error de sincronització",
+  }
+};
+let currentLang = 'es';
+
+function t(key){ return (_texts[currentLang]||_texts.es)[key] || key; }
+
+function setLang(lang) {
+  currentLang = lang;
+  ['btn-es','btn-en','btn-ca'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('btn-'+lang).classList.add('active');
+  Object.keys(_texts.es).forEach(key => {
+    const el = document.getElementById(key);
+    if(el) el.textContent = t(key);
+  });
+  // update login error visibility text
+  document.getElementById('login-error').textContent = t('login-error');
+}
+
+/* ─── PARTICLES ─── */
+function makeParticles(containerId, count=10) {
+  const c = document.getElementById(containerId);
+  if(!c) return;
+  c.innerHTML = '';
+  for(let i=0;i<count;i++){
+    const d = document.createElement('div');
+    d.className = 'particle';
+    const sz = 20+Math.random()*80;
+    d.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;
+      animation-duration:${8+Math.random()*14}s;animation-delay:${Math.random()*8}s;`;
+    c.appendChild(d);
+  }
+}
+makeParticles('splash-particles');
+makeParticles('login-particles');
+
+/* ─── SPLASH ─── */
+setTimeout(() => {
+  document.getElementById('splash').classList.add('splash-hidden');
+  setTimeout(() => {
+    document.getElementById('splash').style.display = 'none';
+  }, 400);
+}, 2200);
+
+/* ─── MAIL DATA ─── */
+const mailColors = ['#3949AB','#7C4DFF','#00ACC1','#E53935','#43A047','#FB8C00'];
+const mails = [
+  {id:1, from:'Soporte Técnico', subject:'Actualización del sistema programada', time:'10:32', unread:true, color:'#3949AB', initials:'ST'},
+  {id:2, from:'Marketing Team', subject:'Resultados Q1 2026 — informe adjunto', time:'09:15', unread:true, color:'#7C4DFF', initials:'MT'},
+  {id:3, from:'Recursos Humanos', subject:'Reminder: Evaluaciones de desempeño', time:'Ayer', unread:false, color:'#00ACC1', initials:'RH'},
+  {id:4, from:'DevOps', subject:'Pipeline CI/CD actualizado en producción', time:'Ayer', unread:false, color:'#E53935', initials:'DO'},
+  {id:5, from:'Ana García', subject:'Reunión de equipo — ¿miércoles a las 15h?', time:'Lun', unread:false, color:'#43A047', initials:'AG'},
+  {id:6, from:'Legal & Compliance', subject:'Revisión de contratos — pendiente firma', time:'Dom', unread:false, color:'#FB8C00', initials:'LC'},
+];
+
+function renderMails() {
+  const list = document.getElementById('mail-list');
+  list.innerHTML = mails.map(m => `
+    <div class="mail-item" onclick="showToast('📧 ${m.from}','')">
+      <div class="mail-avatar" style="background:${m.color}">${m.initials}</div>
+      <div class="mail-meta">
+        <div class="mail-sender">${m.from}</div>
+        <div class="mail-subject">${m.subject}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <div class="mail-time">${m.time}</div>
+        ${m.unread ? '<div class="mail-unread-dot"></div>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ─── ALERTS DATA ─── */
+let alertsData = [
+  {id:1, type:'warn', icon:'warn', titleKey:'alert-new-mail', desc:'soporte@uniq.com', time:'10:32'},
+  {id:2, type:'ok', icon:'ok', titleKey:'alert-backup', desc:'servidor-01', time:'08:00'},
+  {id:3, type:'info', icon:'info', titleKey:'alert-update', desc:'v2.4.1 → v2.5.0', time:'Ayer'},
+  {id:4, type:'err', icon:'err', titleKey:'alert-error', desc:'módulo mail-sync', time:'Ayer'},
+];
+let nextAlertId = 5;
+
+const alertIcons = {
+  warn: `<svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>`,
+  ok:   `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`,
+  info: `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`,
+  err:  `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`,
+};
+
+function renderAlerts() {
+  const list = document.getElementById('alerts-list');
+  if(alertsData.length === 0) {
+    list.innerHTML = `<div class="no-alerts">
+      <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      <p style="font-weight:600;color:var(--text-main)">${currentLang==='en'?'No alerts':'No hi ha alertes'}</p>
+    </div>`;
+  } else {
+    list.innerHTML = alertsData.map(a => `
+      <div class="alert-item" id="alert-${a.id}">
+        <div class="alert-icon ${a.icon}">${alertIcons[a.icon]}</div>
+        <div class="alert-text">
+          <div class="alert-title-t">${t(a.titleKey)}</div>
+          <div class="alert-desc">${a.desc}</div>
+        </div>
+        <div class="alert-time">${a.time}</div>
+        <button class="dismiss-btn" onclick="dismissAlert(${a.id})" title="Dismiss">
+          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+  updateBadge();
+}
+
+function updateBadge() {
+  const badge = document.getElementById('alerts-badge');
+  const count = alertsData.length;
+  document.getElementById('alerts-count-stat').textContent = count;
+  if(count > 0) {
+    badge.textContent = count > 9 ? '9+' : count;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function dismissAlert(id) {
+  const el = document.getElementById('alert-'+id);
+  if(el) { el.style.transform='translateX(60px)'; el.style.opacity='0'; el.style.transition='all .25s'; }
+  setTimeout(() => {
+    alertsData = alertsData.filter(a => a.id !== id);
+    renderAlerts();
+  }, 250);
+}
+
+function clearAllAlerts() {
+  alertsData = [];
+  renderAlerts();
+}
+
+/* ─── TABS ─── */
+function switchTab(tab) {
+  ['mail','alerts','profile'].forEach(t => {
+    document.getElementById('tab-'+t).classList.remove('active');
+    document.getElementById('nav-'+t).classList.remove('active');
+  });
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('nav-'+tab).classList.add('active');
+}
+
+/* ─── LOGIN ─── */
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const userField = document.getElementById('login-user');
+  const passField = document.getElementById('login-pass');
+
+  if(user === 'admin' && pass === '1234') {
+    errEl.classList.remove('show');
+    userField.classList.remove('error');
+    passField.classList.remove('error');
+    document.getElementById('login-screen').style.animation = 'fade-out .4s forwards';
+    setTimeout(() => {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      showToast(t('toast-login-ok'), 'success');
+      // Add a welcome notification
+      alertsData.unshift({id:nextAlertId++, type:'ok', icon:'ok', titleKey:'toast-login-ok', desc:'admin@uniqality.com', time:'Ahora'});
+      renderAlerts();
+    }, 400);
+  } else {
+    errEl.classList.add('show');
+    userField.classList.add('error');
+    passField.classList.add('error');
+    document.getElementById('login-card')?.classList.add('shake');
+    passField.value = '';
+    passField.focus();
+  }
+}
+
+document.getElementById('login-user').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pass').focus(); });
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-screen').style.animation = '';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').classList.remove('show');
+  document.getElementById('login-user').classList.remove('error');
+  document.getElementById('login-pass').classList.remove('error');
+}
+
+/* ─── MODALS ─── */
+function openComposeModal() { document.getElementById('compose-modal').classList.add('open'); }
+function openEditModal() { document.getElementById('edit-modal').classList.add('open'); }
+function closeModal(id, e) {
+  if(!e || e.target.classList.contains('modal-overlay')) {
+    document.getElementById(id).classList.remove('open');
+  }
+}
+
+function sendMail() {
+  const to = document.getElementById('compose-to').value;
+  const subj = document.getElementById('compose-subject').value;
+  if(!to || !subj) return;
+  closeModal('compose-modal');
+  document.getElementById('compose-to').value = '';
+  document.getElementById('compose-subject').value = '';
+  document.getElementById('compose-body').value = '';
+  showToast(t('toast-sent'), 'success');
+  // Add to alerts
+  alertsData.unshift({id:nextAlertId++, type:'ok', icon:'ok', titleKey:'alert-new-mail', desc:`→ ${to}`, time:'Ahora'});
+  renderAlerts();
+}
+
+function saveProfile() {
+  const name = document.getElementById('edit-name').value.trim();
+  if(name) {
+    document.getElementById('profile-name-txt').textContent = name;
+    const initials = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('avatar-initials').textContent = initials;
+  }
+  closeModal('edit-modal');
+  showToast(t('toast-saved'), 'success');
+}
+
+/* ─── FILE UPLOAD (Uint8List / MemoryImage equivalent) ─── */
+function handleFileChange(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // e.target.result is the base64 data URL (Uint8List equivalent via MemoryImage)
+    const uint8DataUrl = e.target.result;
+    const avatarImg = document.getElementById('avatar-img');
+    const avatarInitials = document.getElementById('avatar-initials');
+    avatarImg.src = uint8DataUrl;
+    avatarImg.style.display = 'block';
+    avatarInitials.style.display = 'none';
+    showToast(t('toast-upload'), 'success');
+  };
+  reader.readAsDataURL(file); // withData: true equivalent
+  // Reset input so same file can be re-selected
+  event.target.value = '';
+}
+
+/* ─── TOAST ─── */
+function showToast(msg, type='') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' '+type : '');
+  const icon = type==='success'
+    ? `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`
+    : type==='error'
+    ? `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`
+    : `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`;
+  t.innerHTML = icon + msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.transition='all .3s'; t.style.opacity='0'; t.style.transform='translateX(40px)'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+/* ─── INIT ─── */
+renderMails();
+renderAlerts();
+</script>
+</body>
+</html>
