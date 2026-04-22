@@ -1055,7 +1055,23 @@ function showToast(msg, type='') {
 /* ─── PWA SERVICE WORKER ─── */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW error", err));
+    navigator.serviceWorker.register('./sw.js').then(registration => {
+      
+      // Comprobar si hay actualizaciones
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // ¡Hay una actualización disponible!
+            showToast('Actualización disponible. Reinicia la app.', 'info');
+            
+            // Opcional: Recargar automáticamente después de 3 segundos
+            // setTimeout(() => window.location.reload(), 3000);
+          }
+        });
+      });
+      
+    }).catch(err => console.log("SW error", err));
   });
 }
 
