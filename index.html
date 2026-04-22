@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>UNIQALITY HUB</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet"/>
@@ -27,19 +27,6 @@
     --font-head:   'Space Grotesk', sans-serif;
     --font-body:   'DM Sans', sans-serif;
   }
-  
-  /* ─── MODO OSCURO (Añadido) ─── */
-  body.dark-mode {
-    --surface:     #0F0F13;
-    --card:        #1A1A24;
-    --text-main:   #FFFFFF;
-    --text-sub:    #8B95C9;
-    --border:      #2A2A3A;
-    --shadow:      0 8px 32px rgba(0,0,0,0.5);
-    --shadow-card: 0 4px 24px rgba(0,0,0,0.3);
-  }
-  body.dark-mode .section-title { color: var(--accent2); }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: var(--font-body);
@@ -47,7 +34,6 @@
     color: var(--text-main);
     min-height: 100vh;
     overflow: hidden;
-    transition: background 0.3s, color 0.3s;
   }
 
   /* ─── SPLASH ─── */
@@ -141,7 +127,6 @@
     display: flex; align-items: stretch;
     box-shadow: 0 -4px 20px rgba(26,35,126,0.09);
     flex-shrink: 0;
-    padding-bottom: env(safe-area-inset-bottom); /* Fix for iPhone Notch */
   }
   .nav-item {
     flex: 1; display: flex; flex-direction: column; align-items: center;
@@ -152,7 +137,6 @@
     position: relative;
   }
   .nav-item.active { color: var(--indigo-deep); }
-  body.dark-mode .nav-item.active { color: var(--accent); }
   .nav-item svg { width: 22px; height: 22px; transition: transform .2s; }
   .nav-item.active svg { transform: scale(1.15); }
   .nav-indicator {
@@ -160,7 +144,6 @@
     width: 32px; height: 3px; border-radius: 0 0 3px 3px;
     background: var(--indigo-deep); opacity: 0; transition: opacity .2s;
   }
-  body.dark-mode .nav-indicator { background: var(--accent); }
   .nav-item.active .nav-indicator { opacity: 1; }
   .badge-wrap { position: relative; display: inline-flex; }
   .badge {
@@ -214,7 +197,6 @@
     font-family: var(--font-head); font-size: 1.5rem; font-weight: 700;
     text-align: center; color: var(--indigo-deep); margin-bottom: 4px;
   }
-  body.dark-mode .login-title { color: #ffffff; }
   .login-sub { text-align: center; font-size: .83rem; color: var(--text-sub); margin-bottom: 28px; }
   .field-group { margin-bottom: 16px; }
   .field-label {
@@ -249,15 +231,6 @@
   .login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(26,35,126,0.4); }
   .login-btn:active { transform: scale(0.98); }
   .login-btn svg { width: 18px; height: 18px; fill: #fff; }
-  
-  /* Botón Biometría (Añadido) */
-  .bio-btn {
-    margin-top: 12px; width: 100%; padding: 12px; background: transparent; border: 1.5px solid var(--border);
-    color: var(--text-main); border-radius: 12px; font-family: var(--font-body); font-weight: 600; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s;
-  }
-  .bio-btn:hover { background: var(--surface); }
-  .bio-btn svg { width: 20px; height: 20px; fill: var(--accent); }
 
   /* ─── CARDS ─── */
   .section-title {
@@ -271,7 +244,6 @@
     margin-bottom: 14px;
     transition: transform .2s, box-shadow .2s;
   }
-  body.dark-mode .card { border-color: var(--border); }
   .card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(26,35,126,0.18); }
 
   /* ─── MAIL TAB ─── */
@@ -280,7 +252,6 @@
     padding: 14px 0; border-bottom: 1px solid rgba(197,202,233,0.35);
     cursor: pointer;
   }
-  body.dark-mode .mail-item { border-color: var(--border); }
   .mail-item:last-child { border-bottom: none; }
   .mail-avatar {
     width: 42px; height: 42px; border-radius: 12px;
@@ -308,9 +279,6 @@
   .mail-fab svg { width: 24px; height: 24px; fill: #fff; }
 
   /* ─── ALERTS TAB ─── */
-  .search-bar { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-main); margin-bottom: 16px; font-family: var(--font-body); outline: none;}
-  .search-bar:focus { border-color: var(--accent); }
-  
   .alert-item {
     display: flex; gap: 12px; align-items: center;
     padding: 14px; border-radius: 14px; margin-bottom: 10px;
@@ -318,7 +286,6 @@
     background: var(--card);
     transition: transform .15s;
   }
-  body.dark-mode .alert-item { border-color: var(--border); }
   .alert-item:hover { transform: translateX(3px); }
   .alert-icon {
     width: 42px; height: 42px; border-radius: 12px;
@@ -351,14 +318,20 @@
   }
   .no-alerts svg { width: 52px; height: 52px; fill: var(--border); }
 
-  /* ─── CAMERAS TAB (Añadido) ─── */
-  #cam-view { background: #000; border-radius: 16px; overflow: hidden; position: relative; box-shadow: var(--shadow-card); aspect-ratio: 16/9; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
-  #cam-view:fullscreen { border-radius: 0; aspect-ratio: auto; }
-  .live-badge { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.6); color: #FF1744; padding: 4px 10px; border-radius: 8px; font-size: .75rem; font-weight: 700; display: flex; align-items: center; gap: 6px; letter-spacing: 1px; z-index: 5; }
+  /* ─── CAMERAS TAB ─── */
+  .cam-container {
+    background: #000; border-radius: 16px; overflow: hidden; position: relative;
+    box-shadow: var(--shadow-card); aspect-ratio: 16/9; margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .live-badge {
+    position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.6);
+    color: #FF1744; padding: 4px 10px; border-radius: 8px; font-size: .75rem;
+    font-weight: 700; display: flex; align-items: center; gap: 6px; letter-spacing: 1px;
+    z-index: 5;
+  }
   .live-dot { width: 8px; height: 8px; background: #FF1744; border-radius: 50%; animation: blink 1.5s infinite; }
   @keyframes blink { 0%, 100% {opacity: 1;} 50% {opacity: 0.3;} }
-  .fs-btn { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.5); border: none; color: white; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5; }
-  .fs-btn svg { width: 20px; height: 20px; fill: white; }
 
   /* ─── PROFILE TAB ─── */
   .profile-hero {
@@ -395,7 +368,6 @@
     box-shadow: 0 2px 10px rgba(26,35,126,0.07);
   }
   .stat-num { font-family: var(--font-head); font-size: 1.4rem; font-weight: 700; color: var(--indigo-deep); }
-  body.dark-mode .stat-num { color: var(--accent2); }
   .stat-lbl { font-size: .7rem; color: var(--text-sub); margin-top: 3px; }
   .menu-item {
     display: flex; align-items: center; gap: 13px; padding: 14px 16px;
@@ -409,12 +381,6 @@
   .menu-icon svg { width: 20px; height: 20px; }
   .menu-label { flex: 1; font-weight: 500; font-size: .9rem; }
   .menu-chevron svg { width: 16px; height: 16px; fill: var(--border); }
-  
-  /* Toggle Switch (Añadido) */
-  .toggle-switch { width: 44px; height: 24px; background: var(--border); border-radius: 12px; position: relative; cursor: pointer; transition: background 0.3s; }
-  .toggle-switch.active { background: var(--success); }
-  .toggle-circle { width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-  .toggle-switch.active .toggle-circle { transform: translateX(20px); }
 
   /* ─── FILE UPLOAD ─── */
   .file-upload-zone {
@@ -444,7 +410,7 @@
   }
   @keyframes sheet-up { from{transform:translateY(100%)} to{transform:none} }
   .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
-  .modal-title { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 16px; }
+  .modal-title { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; color: var(--indigo-deep); margin-bottom: 16px; }
   .modal-close {
     float: right; background: var(--surface); border: none; border-radius: 8px;
     width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
@@ -472,9 +438,8 @@
     display: flex; align-items: center; gap: 8px;
     animation: toast-in .3s ease;
   }
-  .toast.success { background: var(--success); }
+  .toast.success { background: #2E7D32; }
   .toast.error { background: var(--error); }
-  .toast.info { background: var(--accent2); }
   @keyframes toast-in { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:none} }
   .toast svg { width: 16px; height: 16px; fill: #fff; flex-shrink: 0; }
 
@@ -534,10 +499,6 @@
       <svg viewBox="0 0 24 24"><path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/></svg>
       <span id="lt-btn">Iniciar Sesión</span>
     </button>
-    <button class="bio-btn" onclick="simulateBiometrics()">
-      <svg viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.89-1.24-2.01-2.2-3.35-2.89-2.83-1.45-6.44-1.44-9.35.05-1.35.69-2.47 1.66-3.36 2.91-.12.18-.32.28-.52.28zM12 22c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27 1.46-.74 3.12-1.13 4.9-1.13.28 0 .5.22.5.5s-.22.5-.5.5c-1.63 0-3.15.36-4.48 1.04-1.35.69-2.47 1.66-3.36 2.91-.12.18-.32.28-.52.28z"/></svg>
-      <span id="lt-bio">Entrar con FaceID / TouchID</span>
-    </button>
   </div>
 </div>
 
@@ -582,12 +543,9 @@
     <div class="tab-panel" id="tab-cams">
       <div class="section-title" id="t-cam-title">Videovigilancia</div>
 
-      <div id="cam-view">
-        <div class="live-badge"><div class="live-dot"></div><span id="t-live-txt">LIVE</span></div>
+      <div class="cam-container">
+        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
         <svg viewBox="0 0 24 24" style="width:60px;height:60px;fill:rgba(255,255,255,0.2);position:absolute;"><path d="M15 8v8H5V8h10m1-2H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4V7c0-.55-.45-1-1-1z"/></svg>
-        <button class="fs-btn" onclick="toggleFullscreen()" title="Pantalla Completa">
-          <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-        </button>
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
@@ -595,34 +553,30 @@
           <div style="font-weight:700; font-size:1.05rem;" id="t-cam-live">Cámara Frontal - EN DIRECTO</div>
           <div style="font-size:0.8rem; color:var(--success); font-weight:600; margin-top:2px;" id="t-cam-status">Estado: En línea</div>
         </div>
-        <button class="send-btn" style="width:auto; margin:0; padding:8px 16px;" onclick="showToast('Conectando...', 'success')">
+        <button class="send-btn" style="width:auto; margin:0; padding:8px 16px;" onclick="showToast('Conectando a la red segura...', 'success')">
           <svg viewBox="0 0 24 24"><path d="M12 15c1.66 0 2.99-1.34 2.99-3L15 9c0-1.66-1.34-3-3-3S9 7.34 9 9v3c0 1.66 1.34 3 3 3zm5.46-3c-.06 1.3-.58 2.54-1.46 3.46-1.71 1.71-4.29 2.18-6.46.99-1.89-1.04-3-3.08-3-5.23H5c0 3.53 2.61 6.43 6 6.92V21h2v-2.08c3.39-.49 6-3.39 6-6.92h-1.54z"/></svg>
           <span id="t-cam-view">Acceder</span>
         </button>
       </div>
 
-      <input type="text" id="log-search" class="search-bar" placeholder="Buscar registros... (ej. Persona, Movimiento)" onkeyup="filterLogs()">
-
       <div class="section-title" id="t-cam-logs" style="font-size: .9rem;">Registros Sospechosos</div>
       
-      <div id="log-list">
-        <div class="alert-item log-item" style="border-left: 4px solid var(--badge);">
-          <div class="alert-icon err"><svg viewBox="0 0 24 24"><path d="M13.5 6.5C14.88 6.5 16 7.62 16 9s-1.12 2.5-2.5 2.5S11 10.38 11 9s1.12-2.5 2.5-2.5m0-2C12.12 4.5 11 5.62 11 7s1.12 2.5 2.5 2.5S16 8.38 16 7s-1.12-2.5-2.5-2.5zm6.5 12v1H7v-1c0-1.83 3.67-2.75 5.5-2.75s5.5.92 5.5 2.75m-5.5-4.25c-2.33 0-7 1.17-7 3.5V19h14v-1.5c0-2.33-4.67-3.5-7-3.5zM6 15H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2z"/></svg></div>
-          <div class="alert-text">
-            <div class="alert-title-t log-title" id="t-log-person">Persona no reconocida</div>
-            <div class="alert-desc log-desc" id="t-log-p-desc">Movimiento detectado en la puerta principal</div>
-          </div>
-          <div class="alert-time">02:40 AM</div>
+      <div class="alert-item" style="border-left: 4px solid var(--badge);">
+        <div class="alert-icon err"><svg viewBox="0 0 24 24"><path d="M13.5 6.5C14.88 6.5 16 7.62 16 9s-1.12 2.5-2.5 2.5S11 10.38 11 9s1.12-2.5 2.5-2.5m0-2C12.12 4.5 11 5.62 11 7s1.12 2.5 2.5 2.5S16 8.38 16 7s-1.12-2.5-2.5-2.5zm6.5 12v1H7v-1c0-1.83 3.67-2.75 5.5-2.75s5.5.92 5.5 2.75m-5.5-4.25c-2.33 0-7 1.17-7 3.5V19h14v-1.5c0-2.33-4.67-3.5-7-3.5zM6 15H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2z"/></svg></div>
+        <div class="alert-text">
+          <div class="alert-title-t" id="t-log-person">Persona no reconocida</div>
+          <div class="alert-desc" id="t-log-p-desc">Movimiento detectado en la puerta principal</div>
         </div>
+        <div class="alert-time">02:40 AM</div>
+      </div>
 
-        <div class="alert-item log-item" style="border-left: 4px solid #FB8C00;">
-          <div class="alert-icon warn"><svg viewBox="0 0 24 24"><path d="M12 2L1 21h22M12 6l7.53 13H4.47M11 10v4h2v-4m-2 6v2h2v-2"/></svg></div>
-          <div class="alert-text">
-            <div class="alert-title-t log-title" id="t-log-motion">Movimiento inusual</div>
-            <div class="alert-desc log-desc" id="t-log-m-desc">Zona delimitada A (Patio trasero)</div>
-          </div>
-          <div class="alert-time">Ayer 23:15</div>
+      <div class="alert-item" style="border-left: 4px solid #FB8C00;">
+        <div class="alert-icon warn"><svg viewBox="0 0 24 24"><path d="M12 2L1 21h22M12 6l7.53 13H4.47M11 10v4h2v-4m-2 6v2h2v-2"/></svg></div>
+        <div class="alert-text">
+          <div class="alert-title-t" id="t-log-motion">Movimiento inusual</div>
+          <div class="alert-desc" id="t-log-m-desc">Zona delimitada A (Patio trasero)</div>
         </div>
+        <div class="alert-time">Ayer 23:15</div>
       </div>
     </div>
 
@@ -650,14 +604,14 @@
       </div>
 
       <div class="card" style="padding:8px;">
-        <div class="menu-item" onclick="showToast('No hay notificaciones push', 'info')">
+        <div class="menu-item">
           <div class="menu-icon" style="background:rgba(57,73,171,0.1);">
             <svg viewBox="0 0 24 24" fill="var(--indigo-light)"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
           </div>
           <span class="menu-label" id="t-m-notif">Notificaciones</span>
           <div class="menu-chevron"><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
         </div>
-        <div class="menu-item" onclick="openSettingsModal()">
+        <div class="menu-item">
           <div class="menu-icon" style="background:rgba(0,188,212,0.1);">
             <svg viewBox="0 0 24 24" fill="var(--accent2)"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
           </div>
@@ -708,29 +662,6 @@
       <span id="nt-profile">Perfil</span>
     </button>
   </nav>
-</div>
-
-<div class="modal-overlay" id="settings-modal" onclick="closeModal('settings-modal',event)">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <button class="modal-close" onclick="closeModal('settings-modal')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-    <div class="modal-title" id="t-settings-title">Configuración del Sistema</div>
-    
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-      <div>
-        <div style="font-weight:600; color:var(--text-main);" id="t-dark-mode">Modo Oscuro</div>
-        <div style="font-size:0.8rem; color:var(--text-sub);" id="t-dark-desc">Interfaz adaptada para la noche</div>
-      </div>
-      <div class="toggle-switch" id="theme-toggle" onclick="toggleTheme()">
-        <div class="toggle-circle"></div>
-      </div>
-    </div>
-    
-    <button class="send-btn" style="background:var(--error);" onclick="clearData()">
-      <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-      <span id="t-clear-data">Borrar Datos Locales</span>
-    </button>
-  </div>
 </div>
 
 <div class="modal-overlay" id="compose-modal" onclick="closeModal('compose-modal',event)">
@@ -810,14 +741,10 @@ const _texts = {
     "toast-upload":"Foto actualizada",
     "alert-new-mail":"Nuevo correo recibido","alert-backup":"Copia de seguridad completada",
     "alert-update":"Actualización disponible","alert-error":"Error de sincronización",
-    // Nuevas llaves:
-    "lt-bio":"Entrar con FaceID / TouchID", "t-settings-title":"Configuración del Sistema",
-    "t-dark-mode":"Modo Oscuro", "t-dark-desc":"Interfaz adaptada para la noche",
-    "t-clear-data":"Borrar Datos Locales", "nt-cams":"Cámaras", "t-cam-title":"Videovigilancia",
-    "t-live-txt":"LIVE", "t-cam-live":"Cámara Frontal - EN DIRECTO", "t-cam-status":"Estado: En línea",
-    "t-cam-view":"Acceder", "t-cam-logs":"Registros Sospechosos", "t-log-person":"Persona no reconocida",
-    "t-log-p-desc":"Movimiento detectado en la puerta principal", "t-log-motion":"Movimiento inusual",
-    "t-log-m-desc":"Zona delimitada A (Patio trasero)"
+    "nt-cams":"Cámaras", "t-cam-title":"Videovigilancia", "t-cam-live":"Cámara Frontal - EN DIRECTO", 
+    "t-cam-status":"Estado: En línea", "t-cam-view":"Acceder", "t-cam-logs":"Registros Sospechosos",
+    "t-log-person":"Persona no reconocida", "t-log-p-desc":"Movimiento detectado en la puerta principal",
+    "t-log-motion":"Movimiento inusual", "t-log-m-desc":"Zona delimitada A (Patio trasero)"
   },
   en: {
     "lt-title":"Welcome","lt-sub":"Sign in to your account","lt-user":"Username",
@@ -835,13 +762,10 @@ const _texts = {
     "toast-upload":"Photo updated",
     "alert-new-mail":"New email received","alert-backup":"Backup completed",
     "alert-update":"Update available","alert-error":"Sync error",
-    "lt-bio":"Login with FaceID / TouchID", "t-settings-title":"System Settings",
-    "t-dark-mode":"Dark Mode", "t-dark-desc":"Night adapted interface",
-    "t-clear-data":"Clear Local Data", "nt-cams":"Cameras", "t-cam-title":"Video Surveillance",
-    "t-live-txt":"LIVE", "t-cam-live":"Front Camera - LIVE", "t-cam-status":"Status: Online",
-    "t-cam-view":"Access", "t-cam-logs":"Suspicious Logs", "t-log-person":"Unknown person detected",
-    "t-log-p-desc":"Movement detected at main entrance", "t-log-motion":"Unusual movement",
-    "t-log-m-desc":"Restricted Zone A (Backyard)"
+    "nt-cams":"Cameras", "t-cam-title":"Video Surveillance", "t-cam-live":"Front Camera - LIVE", 
+    "t-cam-status":"Status: Online", "t-cam-view":"Access", "t-cam-logs":"Suspicious Logs",
+    "t-log-person":"Unknown person detected", "t-log-p-desc":"Movement detected at main entrance",
+    "t-log-motion":"Unusual movement", "t-log-m-desc":"Restricted Zone A (Backyard)"
   },
   ca: {
     "lt-title":"Benvingut","lt-sub":"Inicia sessió al teu compte","lt-user":"Usuari",
@@ -859,75 +783,25 @@ const _texts = {
     "toast-upload":"Foto actualitzada",
     "alert-new-mail":"Nou correu rebut","alert-backup":"Còpia de seguretat completada",
     "alert-update":"Actualització disponible","alert-error":"Error de sincronització",
-    "lt-bio":"Entrar amb FaceID / TouchID", "t-settings-title":"Configuració del Sistema",
-    "t-dark-mode":"Mode Fosc", "t-dark-desc":"Interfície adaptada per a la nit",
-    "t-clear-data":"Esborrar Dades Locals", "nt-cams":"Càmeres", "t-cam-title":"Videovigilància",
-    "t-live-txt":"LIVE", "t-cam-live":"Càmera Frontal - EN DIRECTE", "t-cam-status":"Estat: En línia",
-    "t-cam-view":"Accedir", "t-cam-logs":"Registres Sospitosos", "t-log-person":"Persona no reconeguda",
-    "t-log-p-desc":"Moviment detectat a la porta principal", "t-log-motion":"Moviment inusual",
-    "t-log-m-desc":"Zona delimitada A (Pati posterior)"
+    "nt-cams":"Càmeres", "t-cam-title":"Videovigilància", "t-cam-live":"Càmera Frontal - EN DIRECTE", 
+    "t-cam-status":"Estat: En línia", "t-cam-view":"Acceder", "t-cam-logs":"Registres Sospitosos",
+    "t-log-person":"Persona no reconeguda", "t-log-p-desc":"Moviment detectat a la porta principal",
+    "t-log-motion":"Moviment inusual", "t-log-m-desc":"Zona delimitada A (Pati posterior)"
   }
 };
-let currentLang = localStorage.getItem('uniqality_lang') || 'es';
+let currentLang = 'es';
 
 function t(key){ return (_texts[currentLang]||_texts.es)[key] || key; }
 
 function setLang(lang) {
   currentLang = lang;
-  localStorage.setItem('uniqality_lang', lang);
   ['btn-es','btn-en','btn-ca'].forEach(id => document.getElementById(id).classList.remove('active'));
   document.getElementById('btn-'+lang).classList.add('active');
   Object.keys(_texts.es).forEach(key => {
     const el = document.getElementById(key);
     if(el) el.textContent = t(key);
   });
-  // update login error visibility text
-  const err = document.getElementById('login-error');
-  if(err) err.textContent = t('login-error');
-}
-
-/* ─── LOCAL STORAGE INITIALIZATION ─── */
-function initApp() {
-  setLang(currentLang);
-  
-  // Name
-  const savedName = localStorage.getItem('uniqality_username');
-  if(savedName) {
-    document.getElementById('profile-name-txt').textContent = savedName;
-    document.getElementById('edit-name').value = savedName;
-    const initials = savedName.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-    document.getElementById('avatar-initials').textContent = initials;
-  }
-  
-  // Avatar
-  const savedAvatar = localStorage.getItem('uniqality_avatar');
-  if(savedAvatar) {
-    const avatarImg = document.getElementById('avatar-img');
-    avatarImg.src = savedAvatar;
-    avatarImg.style.display = 'block';
-    document.getElementById('avatar-initials').style.display = 'none';
-  }
-  
-  // Theme
-  const savedTheme = localStorage.getItem('uniqality_theme');
-  if(savedTheme === 'dark') {
-    document.body.classList.add('dark-mode');
-    const toggle = document.getElementById('theme-toggle');
-    if(toggle) toggle.classList.add('active');
-  }
-}
-
-function toggleTheme() {
-  const isDark = document.body.classList.toggle('dark-mode');
-  const toggle = document.getElementById('theme-toggle');
-  if(toggle) toggle.classList.toggle('active', isDark);
-  localStorage.setItem('uniqality_theme', isDark ? 'dark' : 'light');
-}
-
-function clearData() {
-  localStorage.clear();
-  showToast('Datos borrados', 'info');
-  setTimeout(()=> location.reload(), 1000);
+  document.getElementById('login-error').textContent = t('login-error');
 }
 
 /* ─── PARTICLES ─── */
@@ -968,7 +842,6 @@ const mails = [
 
 function renderMails() {
   const list = document.getElementById('mail-list');
-  if(!list) return;
   list.innerHTML = mails.map(m => `
     <div class="mail-item" onclick="showToast('📧 ${m.from}','')">
       <div class="mail-avatar" style="background:${m.color}">${m.initials}</div>
@@ -1002,7 +875,6 @@ const alertIcons = {
 
 function renderAlerts() {
   const list = document.getElementById('alerts-list');
-  if(!list) return;
   if(alertsData.length === 0) {
     list.innerHTML = `<div class="no-alerts">
       <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
@@ -1058,48 +930,18 @@ function clearAllAlerts() {
 /* ─── TABS ─── */
 function switchTab(tab) {
   ['mail','alerts','cams','profile'].forEach(t => {
-    const elTab = document.getElementById('tab-'+t);
+    const elPanel = document.getElementById('tab-'+t);
     const elNav = document.getElementById('nav-'+t);
-    if(elTab) elTab.classList.remove('active');
+    if(elPanel) elPanel.classList.remove('active');
     if(elNav) elNav.classList.remove('active');
   });
-  const tPanel = document.getElementById('tab-'+tab);
-  const tNav = document.getElementById('nav-'+tab);
-  if(tPanel) tPanel.classList.add('active');
-  if(tNav) tNav.classList.add('active');
-}
-
-/* ─── CAMERAS LOGIC ─── */
-function filterLogs() {
-  const query = document.getElementById('log-search').value.toLowerCase();
-  const logs = document.querySelectorAll('#log-list .alert-item');
-  logs.forEach(log => {
-    const text = log.innerText.toLowerCase();
-    log.style.display = text.includes(query) ? 'flex' : 'none';
-  });
-}
-
-function toggleFullscreen() {
-  const cam = document.getElementById('cam-view');
-  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-    if(cam.requestFullscreen) cam.requestFullscreen();
-    else if(cam.webkitRequestFullscreen) cam.webkitRequestFullscreen();
-  } else {
-    if(document.exitFullscreen) document.exitFullscreen();
-    else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
-  }
+  const activePanel = document.getElementById('tab-'+tab);
+  const activeNav = document.getElementById('nav-'+tab);
+  if(activePanel) activePanel.classList.add('active');
+  if(activeNav) activeNav.classList.add('active');
 }
 
 /* ─── LOGIN ─── */
-function simulateBiometrics() {
-  showToast('Verificando biometría...', 'info');
-  setTimeout(() => {
-    document.getElementById('login-user').value = 'admin';
-    document.getElementById('login-pass').value = '1234';
-    doLogin();
-  }, 1200);
-}
-
 function doLogin() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value;
@@ -1116,7 +958,6 @@ function doLogin() {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app').classList.add('visible');
       showToast(t('toast-login-ok'), 'success');
-      // Add a welcome notification
       alertsData.unshift({id:nextAlertId++, type:'ok', icon:'ok', titleKey:'toast-login-ok', desc:'admin@uniqality.com', time:'Ahora'});
       renderAlerts();
     }, 400);
@@ -1124,11 +965,6 @@ function doLogin() {
     errEl.classList.add('show');
     userField.classList.add('error');
     passField.classList.add('error');
-    const card = document.getElementById('login-card');
-    if(card) {
-      card.style.animation = 'none';
-      setTimeout(()=> card.style.animation = 'card-rise .3s', 10);
-    }
     passField.value = '';
     passField.focus();
   }
@@ -1151,7 +987,6 @@ function doLogout() {
 /* ─── MODALS ─── */
 function openComposeModal() { document.getElementById('compose-modal').classList.add('open'); }
 function openEditModal() { document.getElementById('edit-modal').classList.add('open'); }
-function openSettingsModal() { document.getElementById('settings-modal').classList.add('open'); }
 function closeModal(id, e) {
   if(!e || e.target.classList.contains('modal-overlay')) {
     document.getElementById(id).classList.remove('open');
@@ -1167,7 +1002,6 @@ function sendMail() {
   document.getElementById('compose-subject').value = '';
   document.getElementById('compose-body').value = '';
   showToast(t('toast-sent'), 'success');
-  // Add to alerts
   alertsData.unshift({id:nextAlertId++, type:'ok', icon:'ok', titleKey:'alert-new-mail', desc:`→ ${to}`, time:'Ahora'});
   renderAlerts();
 }
@@ -1176,14 +1010,14 @@ function saveProfile() {
   const name = document.getElementById('edit-name').value.trim();
   if(name) {
     document.getElementById('profile-name-txt').textContent = name;
-    localStorage.setItem('uq_name', name);
-    updateAvatarInitials(name);
+    const initials = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('avatar-initials').textContent = initials;
   }
   closeModal('edit-modal');
   showToast(t('toast-saved'), 'success');
 }
 
-/* ─── FILE UPLOAD (Uint8List / MemoryImage equivalent) ─── */
+/* ─── FILE UPLOAD ─── */
 function handleFileChange(event) {
   const file = event.target.files[0];
   if(!file) return;
@@ -1195,11 +1029,9 @@ function handleFileChange(event) {
     avatarImg.src = uint8DataUrl;
     avatarImg.style.display = 'block';
     avatarInitials.style.display = 'none';
-    localStorage.setItem('uq_avatar', uint8DataUrl);
     showToast(t('toast-upload'), 'success');
   };
-  reader.readAsDataURL(file); // withData: true equivalent
-  // Reset input so same file can be re-selected
+  reader.readAsDataURL(file);
   event.target.value = '';
 }
 
@@ -1218,24 +1050,31 @@ function showToast(msg, type='') {
   setTimeout(() => { t.style.transition='all .3s'; t.style.opacity='0'; t.style.transform='translateX(40px)'; setTimeout(()=>t.remove(),300); }, 3000);
 }
 
-/* ─── PWA & SERVICE WORKER ─── */
+/* ─── PWA SERVICE WORKER ─── */
+/* ─── PWA SERVICE WORKER & UPDATES ─── */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').then(registration => {
+      
+      // Comprobar si hay actualizaciones
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // ¡Hay una actualización disponible!
             showToast('Actualización disponible. Reinicia la app.', 'info');
+            
+            // Opcional: Recargar automáticamente después de 3 segundos
+            // setTimeout(() => window.location.reload(), 3000);
           }
         });
       });
+      
     }).catch(err => console.log("SW error", err));
   });
 }
 
 /* ─── INIT ─── */
-initApp();
 renderMails();
 renderAlerts();
 </script>
