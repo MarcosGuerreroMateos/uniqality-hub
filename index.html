@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>UNIQALITY HUB</title>
+<link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -317,6 +318,21 @@
   }
   .no-alerts svg { width: 52px; height: 52px; fill: var(--border); }
 
+  /* ─── CAMERAS TAB ─── */
+  .cam-container {
+    background: #000; border-radius: 16px; overflow: hidden; position: relative;
+    box-shadow: var(--shadow-card); aspect-ratio: 16/9; margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .live-badge {
+    position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.6);
+    color: #FF1744; padding: 4px 10px; border-radius: 8px; font-size: .75rem;
+    font-weight: 700; display: flex; align-items: center; gap: 6px; letter-spacing: 1px;
+    z-index: 5;
+  }
+  .live-dot { width: 8px; height: 8px; background: #FF1744; border-radius: 50%; animation: blink 1.5s infinite; }
+  @keyframes blink { 0%, 100% {opacity: 1;} 50% {opacity: 0.3;} }
+
   /* ─── PROFILE TAB ─── */
   .profile-hero {
     background: linear-gradient(135deg, var(--indigo-deep), var(--accent));
@@ -438,11 +454,9 @@
     padding: 4px 10px; font-size: .74rem; font-weight: 600; color: var(--indigo-light);
   }
 </style>
-<link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-<!-- ═══════════════════════════════ SPLASH ═══════════════════════════════ -->
 <div id="splash">
   <div class="login-particles" id="splash-particles"></div>
   <div class="splash-logo">
@@ -453,12 +467,10 @@
   <div class="splash-bar"><div class="splash-bar-fill"></div></div>
 </div>
 
-<!-- ═══════════════════════════════ LOGIN ════════════════════════════════ -->
 <div id="login-screen">
   <div class="login-particles" id="login-particles"></div>
   <div class="login-card">
     <div class="login-icon-wrap">
-      <!-- lock_person_rounded icon -->
       <svg viewBox="0 0 24 24">
         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v1c0 .55.45 1 1 1h14c.55 0 1-.45 1-1v-1c0-2.66-5.33-4-8-4z"/>
         <path d="M16.5 13.5c-.28 0-.5.22-.5.5v.5h-1v-.5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v.5h-1v-.5c0-.83-.67-1.5-1.5-1.5z" opacity=".7"/>
@@ -490,9 +502,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════ MAIN APP ═════════════════════════════ -->
 <div id="app">
-  <!-- TOP BAR -->
   <div class="top-bar">
     <div class="top-bar-left">
       <div class="top-bar-logo">
@@ -511,9 +521,7 @@
     </div>
   </div>
 
-  <!-- CONTENT -->
   <div class="content-area">
-    <!-- MAIL TAB -->
     <div class="tab-panel active" id="tab-mail">
       <div class="section-title" id="t-mail-title">Bandeja de Entrada</div>
       <div class="card" style="padding:0 18px;">
@@ -524,7 +532,6 @@
       </button>
     </div>
 
-    <!-- ALERTS TAB -->
     <div class="tab-panel" id="tab-alerts">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
         <div class="section-title" id="t-alert-title" style="margin:0">Alertas</div>
@@ -533,9 +540,47 @@
       <div id="alerts-list"></div>
     </div>
 
-    <!-- PROFILE TAB -->
+    <div class="tab-panel" id="tab-cams">
+      <div class="section-title" id="t-cam-title">Videovigilancia</div>
+
+      <div class="cam-container">
+        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+        <svg viewBox="0 0 24 24" style="width:60px;height:60px;fill:rgba(255,255,255,0.2);position:absolute;"><path d="M15 8v8H5V8h10m1-2H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4V7c0-.55-.45-1-1-1z"/></svg>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+        <div>
+          <div style="font-weight:700; font-size:1.05rem;" id="t-cam-live">Cámara Frontal - EN DIRECTO</div>
+          <div style="font-size:0.8rem; color:var(--success); font-weight:600; margin-top:2px;" id="t-cam-status">Estado: En línea</div>
+        </div>
+        <button class="send-btn" style="width:auto; margin:0; padding:8px 16px;" onclick="showToast('Conectando a la red segura...', 'success')">
+          <svg viewBox="0 0 24 24"><path d="M12 15c1.66 0 2.99-1.34 2.99-3L15 9c0-1.66-1.34-3-3-3S9 7.34 9 9v3c0 1.66 1.34 3 3 3zm5.46-3c-.06 1.3-.58 2.54-1.46 3.46-1.71 1.71-4.29 2.18-6.46.99-1.89-1.04-3-3.08-3-5.23H5c0 3.53 2.61 6.43 6 6.92V21h2v-2.08c3.39-.49 6-3.39 6-6.92h-1.54z"/></svg>
+          <span id="t-cam-view">Acceder</span>
+        </button>
+      </div>
+
+      <div class="section-title" id="t-cam-logs" style="font-size: .9rem;">Registros Sospechosos</div>
+      
+      <div class="alert-item" style="border-left: 4px solid var(--badge);">
+        <div class="alert-icon err"><svg viewBox="0 0 24 24"><path d="M13.5 6.5C14.88 6.5 16 7.62 16 9s-1.12 2.5-2.5 2.5S11 10.38 11 9s1.12-2.5 2.5-2.5m0-2C12.12 4.5 11 5.62 11 7s1.12 2.5 2.5 2.5S16 8.38 16 7s-1.12-2.5-2.5-2.5zm6.5 12v1H7v-1c0-1.83 3.67-2.75 5.5-2.75s5.5.92 5.5 2.75m-5.5-4.25c-2.33 0-7 1.17-7 3.5V19h14v-1.5c0-2.33-4.67-3.5-7-3.5zM6 15H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2z"/></svg></div>
+        <div class="alert-text">
+          <div class="alert-title-t" id="t-log-person">Persona no reconocida</div>
+          <div class="alert-desc" id="t-log-p-desc">Movimiento detectado en la puerta principal</div>
+        </div>
+        <div class="alert-time">02:40 AM</div>
+      </div>
+
+      <div class="alert-item" style="border-left: 4px solid #FB8C00;">
+        <div class="alert-icon warn"><svg viewBox="0 0 24 24"><path d="M12 2L1 21h22M12 6l7.53 13H4.47M11 10v4h2v-4m-2 6v2h2v-2"/></svg></div>
+        <div class="alert-text">
+          <div class="alert-title-t" id="t-log-motion">Movimiento inusual</div>
+          <div class="alert-desc" id="t-log-m-desc">Zona delimitada A (Patio trasero)</div>
+        </div>
+        <div class="alert-time">Ayer 23:15</div>
+      </div>
+    </div>
+
     <div class="tab-panel" id="tab-profile">
-      <!-- Hero -->
       <div class="profile-hero">
         <div class="avatar-ring" id="avatar-btn" onclick="document.getElementById('file-input').click()">
           <span id="avatar-initials">AD</span>
@@ -552,14 +597,12 @@
       </div>
       <input type="file" id="file-input" accept="image/*" onchange="handleFileChange(event)"/>
 
-      <!-- Stats -->
       <div class="stat-row">
         <div class="stat-card"><div class="stat-num">24</div><div class="stat-lbl" id="t-stat1">Correos</div></div>
         <div class="stat-card"><div class="stat-num" id="alerts-count-stat">0</div><div class="stat-lbl" id="t-stat2">Alertas</div></div>
         <div class="stat-card"><div class="stat-num">99</div><div class="stat-lbl" id="t-stat3">Días activo</div></div>
       </div>
 
-      <!-- Menu -->
       <div class="card" style="padding:8px;">
         <div class="menu-item">
           <div class="menu-icon" style="background:rgba(57,73,171,0.1);">
@@ -584,7 +627,6 @@
         </div>
       </div>
 
-      <!-- File upload -->
       <div class="card">
         <div class="section-title" id="t-avatar-title" style="font-size:.88rem;">Cambiar Foto de Perfil</div>
         <div class="file-upload-zone" onclick="document.getElementById('file-input').click()">
@@ -595,7 +637,6 @@
     </div>
   </div>
 
-  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-item active" id="nav-mail" onclick="switchTab('mail')">
       <div class="nav-indicator"></div>
@@ -610,6 +651,11 @@
       </div>
       <span id="nt-alerts">Alertas</span>
     </button>
+    <button class="nav-item" id="nav-cams" onclick="switchTab('cams')">
+      <div class="nav-indicator"></div>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 8v8H5V8h10m1-2H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4V7c0-.55-.45-1-1-1z"/></svg>
+      <span id="nt-cams">Cámaras</span>
+    </button>
     <button class="nav-item" id="nav-profile" onclick="switchTab('profile')">
       <div class="nav-indicator"></div>
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -618,8 +664,6 @@
   </nav>
 </div>
 
-<!-- ═══════════════════════════════ MODALS ════════════════════════════════ -->
-<!-- Compose Modal -->
 <div class="modal-overlay" id="compose-modal" onclick="closeModal('compose-modal',event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -650,7 +694,6 @@
   </div>
 </div>
 
-<!-- Edit Profile Modal -->
 <div class="modal-overlay" id="edit-modal" onclick="closeModal('edit-modal',event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -677,16 +720,9 @@
   </div>
 </div>
 
-<!-- Toast Container -->
 <div class="toast-container" id="toast-container"></div>
 
-<!-- ═══════════════════════════════ SCRIPT ════════════════════════════════ -->
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js');
-  });
-}
 /* ─── TRANSLATIONS ─── */
 const _texts = {
   es: {
@@ -705,6 +741,10 @@ const _texts = {
     "toast-upload":"Foto actualizada",
     "alert-new-mail":"Nuevo correo recibido","alert-backup":"Copia de seguridad completada",
     "alert-update":"Actualización disponible","alert-error":"Error de sincronización",
+    "nt-cams":"Cámaras", "t-cam-title":"Videovigilancia", "t-cam-live":"Cámara Frontal - EN DIRECTO", 
+    "t-cam-status":"Estado: En línea", "t-cam-view":"Acceder", "t-cam-logs":"Registros Sospechosos",
+    "t-log-person":"Persona no reconocida", "t-log-p-desc":"Movimiento detectado en la puerta principal",
+    "t-log-motion":"Movimiento inusual", "t-log-m-desc":"Zona delimitada A (Patio trasero)"
   },
   en: {
     "lt-title":"Welcome","lt-sub":"Sign in to your account","lt-user":"Username",
@@ -722,6 +762,10 @@ const _texts = {
     "toast-upload":"Photo updated",
     "alert-new-mail":"New email received","alert-backup":"Backup completed",
     "alert-update":"Update available","alert-error":"Sync error",
+    "nt-cams":"Cameras", "t-cam-title":"Video Surveillance", "t-cam-live":"Front Camera - LIVE", 
+    "t-cam-status":"Status: Online", "t-cam-view":"Access", "t-cam-logs":"Suspicious Logs",
+    "t-log-person":"Unknown person detected", "t-log-p-desc":"Movement detected at main entrance",
+    "t-log-motion":"Unusual movement", "t-log-m-desc":"Restricted Zone A (Backyard)"
   },
   ca: {
     "lt-title":"Benvingut","lt-sub":"Inicia sessió al teu compte","lt-user":"Usuari",
@@ -739,6 +783,10 @@ const _texts = {
     "toast-upload":"Foto actualitzada",
     "alert-new-mail":"Nou correu rebut","alert-backup":"Còpia de seguretat completada",
     "alert-update":"Actualització disponible","alert-error":"Error de sincronització",
+    "nt-cams":"Càmeres", "t-cam-title":"Videovigilància", "t-cam-live":"Càmera Frontal - EN DIRECTE", 
+    "t-cam-status":"Estat: En línia", "t-cam-view":"Acceder", "t-cam-logs":"Registres Sospitosos",
+    "t-log-person":"Persona no reconeguda", "t-log-p-desc":"Moviment detectat a la porta principal",
+    "t-log-motion":"Moviment inusual", "t-log-m-desc":"Zona delimitada A (Pati posterior)"
   }
 };
 let currentLang = 'es';
@@ -753,7 +801,6 @@ function setLang(lang) {
     const el = document.getElementById(key);
     if(el) el.textContent = t(key);
   });
-  // update login error visibility text
   document.getElementById('login-error').textContent = t('login-error');
 }
 
@@ -854,12 +901,15 @@ function renderAlerts() {
 function updateBadge() {
   const badge = document.getElementById('alerts-badge');
   const count = alertsData.length;
-  document.getElementById('alerts-count-stat').textContent = count;
-  if(count > 0) {
-    badge.textContent = count > 9 ? '9+' : count;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
+  const statCount = document.getElementById('alerts-count-stat');
+  if(statCount) statCount.textContent = count;
+  if(badge) {
+    if(count > 0) {
+      badge.textContent = count > 9 ? '9+' : count;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
   }
 }
 
@@ -879,12 +929,16 @@ function clearAllAlerts() {
 
 /* ─── TABS ─── */
 function switchTab(tab) {
-  ['mail','alerts','profile'].forEach(t => {
-    document.getElementById('tab-'+t).classList.remove('active');
-    document.getElementById('nav-'+t).classList.remove('active');
+  ['mail','alerts','cams','profile'].forEach(t => {
+    const elPanel = document.getElementById('tab-'+t);
+    const elNav = document.getElementById('nav-'+t);
+    if(elPanel) elPanel.classList.remove('active');
+    if(elNav) elNav.classList.remove('active');
   });
-  document.getElementById('tab-'+tab).classList.add('active');
-  document.getElementById('nav-'+tab).classList.add('active');
+  const activePanel = document.getElementById('tab-'+tab);
+  const activeNav = document.getElementById('nav-'+tab);
+  if(activePanel) activePanel.classList.add('active');
+  if(activeNav) activeNav.classList.add('active');
 }
 
 /* ─── LOGIN ─── */
@@ -904,7 +958,6 @@ function doLogin() {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app').classList.add('visible');
       showToast(t('toast-login-ok'), 'success');
-      // Add a welcome notification
       alertsData.unshift({id:nextAlertId++, type:'ok', icon:'ok', titleKey:'toast-login-ok', desc:'admin@uniqality.com', time:'Ahora'});
       renderAlerts();
     }, 400);
@@ -912,7 +965,6 @@ function doLogin() {
     errEl.classList.add('show');
     userField.classList.add('error');
     passField.classList.add('error');
-    document.getElementById('login-card')?.classList.add('shake');
     passField.value = '';
     passField.focus();
   }
@@ -950,7 +1002,6 @@ function sendMail() {
   document.getElementById('compose-subject').value = '';
   document.getElementById('compose-body').value = '';
   showToast(t('toast-sent'), 'success');
-  // Add to alerts
   alertsData.unshift({id:nextAlertId++, type:'ok', icon:'ok', titleKey:'alert-new-mail', desc:`→ ${to}`, time:'Ahora'});
   renderAlerts();
 }
@@ -966,13 +1017,12 @@ function saveProfile() {
   showToast(t('toast-saved'), 'success');
 }
 
-/* ─── FILE UPLOAD (Uint8List / MemoryImage equivalent) ─── */
+/* ─── FILE UPLOAD ─── */
 function handleFileChange(event) {
   const file = event.target.files[0];
   if(!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
-    // e.target.result is the base64 data URL (Uint8List equivalent via MemoryImage)
     const uint8DataUrl = e.target.result;
     const avatarImg = document.getElementById('avatar-img');
     const avatarInitials = document.getElementById('avatar-initials');
@@ -981,8 +1031,7 @@ function handleFileChange(event) {
     avatarInitials.style.display = 'none';
     showToast(t('toast-upload'), 'success');
   };
-  reader.readAsDataURL(file); // withData: true equivalent
-  // Reset input so same file can be re-selected
+  reader.readAsDataURL(file);
   event.target.value = '';
 }
 
@@ -999,6 +1048,13 @@ function showToast(msg, type='') {
   t.innerHTML = icon + msg;
   c.appendChild(t);
   setTimeout(() => { t.style.transition='all .3s'; t.style.opacity='0'; t.style.transform='translateX(40px)'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+/* ─── PWA SERVICE WORKER ─── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW error", err));
+  });
 }
 
 /* ─── INIT ─── */
