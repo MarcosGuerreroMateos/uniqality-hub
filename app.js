@@ -28,8 +28,8 @@ const i18n = {
     }
 };
 
-let globalMesh3D = null; // Guardamos la casa 3D en memoria
-let isDragging = false;  // Variable para saber si estamos arrastrando la casa
+let globalMesh3D = null; // Guardamos el entorno 3D completo
+let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -118,14 +118,21 @@ document.addEventListener("DOMContentLoaded", function() {
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem('theme', t);
         
-        // Si la casa 3D está cargada, le cambiamos el color instantáneamente a sus partes
+        // Si el entorno 3D está cargado, cambiamos el color a las líneas
         if(globalMesh3D) {
             let hexColor = 0x00ff99; // verde
             if(t === 'cyan') hexColor = 0x00e5ff;
             if(t === 'magenta') hexColor = 0xff00ff;
             
             globalMesh3D.children.forEach(child => {
-                child.material.color.setHex(hexColor);
+                if (child.material && child.material.color) {
+                    child.material.color.setHex(hexColor);
+                } else if (child.children) {
+                    // Para grupos como las farolas
+                    child.children.forEach(sub => {
+                        if (sub.material && sub.material.color) { sub.material.color.setHex(hexColor); }
+                    });
+                }
             });
         }
     }
@@ -133,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function loadLogs() {
         const log = document.getElementById('terminal-log');
         if(!log) return;
-        const lines = ["BOOT_OS...", "NET_PROTOCOLS: OK", "ESTABLISHING VPN...", "PERIMETER SHIELD: ACTIVE", "SYSTEM READY."];
+        const lines = ["BOOT_OS...", "NET_PROTOCOLS: OK", "ESTABLISHING VPN...", "PERIMETER SHIELD: ACTIVE", "CAMS ONLINE: 4/4", "SYSTEM READY."];
         lines.forEach((line, i) => {
             setTimeout(() => {
                 log.innerHTML += `<div class="log-line sys">[${new Date().toLocaleTimeString()}] ${line}</div>`;
@@ -151,7 +158,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const container = document.getElementById('canvas-3d');
         if(!container || typeof THREE === 'undefined') return;
         
-        // Limpiamos por si se ejecuta dos veces
         container.innerHTML = ''; 
 
         try {
@@ -166,70 +172,34 @@ document.addEventListener("DOMContentLoaded", function() {
             if(currentTheme === 'magenta') hexColor = 0xff00ff;
             
             const material = new THREE.MeshBasicMaterial({ color: hexColor, wireframe: true });
+            const cameraMaterial = new THREE.MeshBasicMaterial({ color: 0xff3366, wireframe: false }); // Rojo para las cámaras
             
-            // --- CONSTRUCCIÓN DE LA CASA 3D ---
+            // --- CONSTRUCCIÓN DEL ENTORNO FAMILIAR 3D ---
             globalMesh3D = new THREE.Group();
 
-            // 1. Base de la casa (Cubo)
-            const baseGeo = new THREE.BoxGeometry(1.5, 1.2, 1.5);
-            const base = new THREE.Mesh(baseGeo, material);
-            base.position.y = -0.6; // Bajamos la base un poco
+            // 1. Base de la casa principal
+            const houseBaseGeo = new THREE.BoxGeometry(2, 1.3, 1.5);
+            const houseBase = new THREE.Mesh(houseBaseGeo, material);
+            houseBase.position.y = -0.65;
+            globalMesh3D.add(houseBase);
 
-            // 2. Techo de la casa (Pirámide)
-            const roofGeo = new THREE.ConeGeometry(1.2, 1, 4);
+            // 2. Porche lateral
+            const porchGeo = new THREE.BoxGeometry(0.8, 0.8, 1);
+            const porch = new THREE.Mesh(porchGeo, material);
+            porch.position.set(1.4, -0.9, 0.25);
+            globalMesh3D.add(porch);
+
+            // 3. Techo principal (Pirámide)
+            const roofGeo = new THREE.ConeGeometry(1.6, 1.2, 4);
             const roof = new THREE.Mesh(roofGeo, material);
-            roof.position.y = 0.5; // Subimos el techo
-            roof.rotation.y = Math.PI / 4; // Giramos 45º para alinear las esquinas con la base
-
-            // Juntamos las piezas
-            globalMesh3D.add(base);
+            roof.position.y = 0.6;
+            roof.rotation.y = Math.PI / 4; 
             globalMesh3D.add(roof);
-            
-            scene.add(globalMesh3D);
-            camera.position.z = 3.5;
-            camera.position.y = 0.5; // Miramos la casa un poco desde arriba
-            
-            // --- LÓGICA DE INTERACCIÓN (ROTACIÓN MANUAL) ---
-            
-            // Ratón (PC)
-            renderer.domElement.addEventListener('mousedown', (e) => { isDragging = true; });
-            renderer.domElement.addEventListener('mousemove', (e) => {
-                if (isDragging && globalMesh3D) {
-                    const deltaX = e.offsetX - previousMousePosition.x;
-                    const deltaY = e.offsetY - previousMousePosition.y;
-                    globalMesh3D.rotation.y += deltaX * 0.01;
-                    globalMesh3D.rotation.x += deltaY * 0.01;
-                }
-                previousMousePosition = { x: e.offsetX, y: e.offsetY };
-            });
-            window.addEventListener('mouseup', () => { isDragging = false; });
 
-            // Táctil (Móvil)
-            renderer.domElement.addEventListener('touchstart', (e) => {
-                isDragging = true;
-                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            });
-            renderer.domElement.addEventListener('touchmove', (e) => {
-                if (isDragging && globalMesh3D) {
-                    const deltaX = e.touches[0].clientX - previousMousePosition.x;
-                    const deltaY = e.touches[0].clientY - previousMousePosition.y;
-                    globalMesh3D.rotation.y += deltaX * 0.01;
-                    globalMesh3D.rotation.x += deltaY * 0.01;
-                }
-                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            });
-            window.addEventListener('touchend', () => { isDragging = false; });
-
-            // Animación continua suave si no estamos arrastrando
-            const animate = () => {
-                requestAnimationFrame(animate);
-                if(globalMesh3D && !isDragging) {
-                    globalMesh3D.rotation.y += 0.005; // Gira lentamente sola
-                }
-                renderer.render(scene, camera);
-            };
-            animate();
-
-        } catch(e) { console.log("3D Falló silenciosamente"); }
-    }
-});
+            // 4. Puerta y ventanas (pequeños cubos incrustados)
+            const winGeo = new THREE.BoxGeometry(0.3, 0.3, 0.1);
+            const doorGeo = new THREE.BoxGeometry(0.4, 0.7, 0.1);
+            
+            const createWin = (x, y, z) => {
+                const win = new THREE.Mesh(winGeo, material);
+                win.
