@@ -1,38 +1,48 @@
+// DICCIONARIO COMPLETO
 const i18n = {
     es: { 
-        loading: "// INICIALIZANDO PROTOCOLOS SOC...", auth_title: "ACCESO RESTRINGIDO", 
-        auth_sub: "// IDENTIFICACIÓN DE AGENTE", login_btn: "VALIDAR CREDENCIALES",
-        login_err: "ERROR: CREDENCIALES NO VÁLIDAS", sys_active: "SISTEMA_ACTIVO",
-        recent_events: "EVENTOS_RECIENTES", settings: "CONFIGURACIÓN", 
-        lang: "IDIOMA", theme: "TEMA DE NEÓN", logout: "DESCONECTAR"
+        loading: "// INICIALIZANDO PROTOCOLOS SOC...",
+        auth_title: "ACCESO RESTRINGIDO", 
+        auth_sub: "// IDENTIFICACIÓN DE AGENTE",
+        login_btn: "VALIDAR CREDENCIALES",
+        login_err: "ERROR: CREDENCIALES NO VÁLIDAS",
+        sys_active: "SISTEMA_ACTIVO",
+        recent_events: "EVENTOS_RECIENTES",
+        settings: "CONFIGURACIÓN", 
+        lang: "IDIOMA",
+        theme: "TEMA DE NEÓN",
+        logout: "DESCONECTAR"
     },
     en: { 
-        loading: "// INITIALIZING SOC PROTOCOLS...", auth_title: "RESTRICTED ACCESS", 
-        auth_sub: "// AGENT IDENTIFICATION REQUIRED", login_btn: "VALIDATE CREDENTIALS",
-        login_err: "ERROR: INVALID CREDENTIALS", sys_active: "SYSTEM_ACTIVE",
-        recent_events: "RECENT EVENTS", settings: "SYSTEM SETTINGS", 
-        lang: "LANGUAGE", theme: "NEON THEME", logout: "DISCONNECT"
+        loading: "// INITIALIZING SOC PROTOCOLS...",
+        auth_title: "RESTRICTED ACCESS", 
+        auth_sub: "// AGENT IDENTIFICATION REQUIRED",
+        login_btn: "VALIDATE CREDENTIALS",
+        login_err: "ERROR: INVALID CREDENTIALS",
+        sys_active: "SYSTEM_ACTIVE",
+        recent_events: "RECENT EVENTS",
+        settings: "SYSTEM SETTINGS", 
+        lang: "LANGUAGE",
+        theme: "NEON THEME",
+        logout: "DISCONNECT"
     }
 };
 
-let globalMesh3D = null;
-let isDragging = false;
+let globalMesh3D = null; // Guardamos la casa 3D en memoria
+let isDragging = false;  // Variable para saber si estamos arrastrando la casa
 let previousMousePosition = { x: 0, y: 0 };
 
-window.onload = function() {
+document.addEventListener("DOMContentLoaded", function() {
     
-    // 1. SALTO FORZADO AL LOGIN (Garantizado a los 3s)
+    // CARGA VISUAL A LOS 3 SEGS
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         const login = document.getElementById('login-screen');
-        if(splash) splash.style.display = 'none';
-        if(login) {
-            login.classList.remove('hidden');
-            login.style.display = 'flex';
-        }
+        if(splash) splash.classList.add('hidden');
+        if(login) login.classList.remove('hidden');
     }, 3000);
 
-    // 2. APLICAR CONFIGURACIÓN GUARDADA
+    // CONFIG INICIAL
     const theme = localStorage.getItem('theme') || 'green';
     const lang = localStorage.getItem('lang') || 'es';
     
@@ -42,31 +52,32 @@ window.onload = function() {
     const langSelect = document.getElementById('lang-toggle');
     if(langSelect) langSelect.value = lang;
 
+    // RELOJ
     setInterval(() => {
         const clock = document.getElementById('current-time');
         if(clock) clock.innerText = new Date().toLocaleTimeString();
     }, 1000);
 
-    // 3. EVENTOS
+    // LOGIN
     const btnLogin = document.getElementById('btn-login');
     if(btnLogin) {
         btnLogin.onclick = function() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
             if(u !== "" && p !== "") {
-                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
-                document.getElementById('main-app').style.display = 'flex';
                 
                 loadLogs();
                 loadEvents();
-                setTimeout(() => init3DHouse(localStorage.getItem('theme') || 'green'), 500);
+                setTimeout(() => init3D(localStorage.getItem('theme') || 'green'), 500);
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
             }
         };
     }
 
+    // TABS NAVEGACIÓN
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -76,16 +87,25 @@ window.onload = function() {
         };
     });
 
-    if(langSelect) langSelect.onchange = (e) => applyLanguage(e.target.value);
-    
+    // CAMBIAR IDIOMA EN VIVO
+    if(langSelect) {
+        langSelect.onchange = function(e) {
+            applyLanguage(e.target.value);
+        };
+    }
+
+    // CAMBIAR COLOR EN VIVO
     document.querySelectorAll('.theme-opt').forEach(opt => {
-        opt.onclick = function() { applyTheme(this.dataset.t); };
+        opt.onclick = function() {
+            applyTheme(this.dataset.t);
+        };
     });
 
     const btnLogout = document.getElementById('btn-logout');
     if(btnLogout) btnLogout.onclick = () => location.reload();
 
-    // 4. FUNCIONES
+    // --- FUNCIONES DE SOPORTE ---
+    
     function applyLanguage(l) {
         localStorage.setItem('lang', l);
         document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -98,19 +118,14 @@ window.onload = function() {
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem('theme', t);
         
+        // Si la casa 3D está cargada, le cambiamos el color instantáneamente a sus partes
         if(globalMesh3D) {
-            let hexColor = 0x00ff99;
+            let hexColor = 0x00ff99; // verde
             if(t === 'cyan') hexColor = 0x00e5ff;
             if(t === 'magenta') hexColor = 0xff00ff;
             
             globalMesh3D.children.forEach(child => {
-                if (child.material && child.material.color) {
-                    child.material.color.setHex(hexColor);
-                } else if (child.children) {
-                    child.children.forEach(sub => {
-                        if (sub.material && sub.material.color) sub.material.color.setHex(hexColor);
-                    });
-                }
+                child.material.color.setHex(hexColor);
             });
         }
     }
@@ -118,7 +133,7 @@ window.onload = function() {
     function loadLogs() {
         const log = document.getElementById('terminal-log');
         if(!log) return;
-        const lines = ["BOOT_OS...", "NET_PROTOCOLS: OK", "PERIMETER SHIELD: ACTIVE", "CAMS ONLINE: 4/4", "SYSTEM READY."];
+        const lines = ["BOOT_OS...", "NET_PROTOCOLS: OK", "ESTABLISHING VPN...", "PERIMETER SHIELD: ACTIVE", "SYSTEM READY."];
         lines.forEach((line, i) => {
             setTimeout(() => {
                 log.innerHTML += `<div class="log-line sys">[${new Date().toLocaleTimeString()}] ${line}</div>`;
@@ -132,10 +147,11 @@ window.onload = function() {
         feed.innerHTML = `<div class="event-card" style="border-left: 3px solid var(--neon); padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05);"><strong>AUTH_OK</strong><br><span style="font-size:12px;color:#aaa">Acceso concedido</span></div>`;
     }
 
-    // --- LA CASA 3D ---
-    function init3DHouse(currentTheme) {
+    function init3D(currentTheme) {
         const container = document.getElementById('canvas-3d');
         if(!container || typeof THREE === 'undefined') return;
+        
+        // Limpiamos por si se ejecuta dos veces
         container.innerHTML = ''; 
 
         try {
@@ -150,98 +166,70 @@ window.onload = function() {
             if(currentTheme === 'magenta') hexColor = 0xff00ff;
             
             const material = new THREE.MeshBasicMaterial({ color: hexColor, wireframe: true });
-            const cameraMaterial = new THREE.MeshBasicMaterial({ color: 0xff3366 }); // Rojo sólido
             
+            // --- CONSTRUCCIÓN DE LA CASA 3D ---
             globalMesh3D = new THREE.Group();
 
-            // Base de la casa
-            const houseBase = new THREE.Mesh(new THREE.BoxGeometry(2, 1.3, 1.5), material);
-            houseBase.position.y = -0.65;
-            globalMesh3D.add(houseBase);
+            // 1. Base de la casa (Cubo)
+            const baseGeo = new THREE.BoxGeometry(1.5, 1.2, 1.5);
+            const base = new THREE.Mesh(baseGeo, material);
+            base.position.y = -0.6; // Bajamos la base un poco
 
-            // Porche
-            const porch = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 1), material);
-            porch.position.set(1.4, -0.9, 0.25);
-            globalMesh3D.add(porch);
+            // 2. Techo de la casa (Pirámide)
+            const roofGeo = new THREE.ConeGeometry(1.2, 1, 4);
+            const roof = new THREE.Mesh(roofGeo, material);
+            roof.position.y = 0.5; // Subimos el techo
+            roof.rotation.y = Math.PI / 4; // Giramos 45º para alinear las esquinas con la base
 
-            // Techo
-            const roof = new THREE.Mesh(new THREE.ConeGeometry(1.6, 1.2, 4), material);
-            roof.position.y = 0.6;
-            roof.rotation.y = Math.PI / 4; 
+            // Juntamos las piezas
+            globalMesh3D.add(base);
             globalMesh3D.add(roof);
-
-            // Aceras
-            const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(5, 0.05, 0.5), material);
-            sidewalk.position.set(0, -1.3, 1.2);
-            globalMesh3D.add(sidewalk);
-            
-            // Farolas
-            const createStreetlight = (x, z) => {
-                const lamp = new THREE.Group();
-                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2, 8), material);
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), material);
-                head.position.y = 1;
-                lamp.add(pole); lamp.add(head);
-                lamp.position.set(x, -0.3, z);
-                globalMesh3D.add(lamp);
-            };
-            createStreetlight(-2, 1.2);
-            createStreetlight(2, 1.2);
-
-            // Cámaras (Puntos rojos)
-            const camerasGroup = new THREE.Group();
-            const createCam = (x, y, z) => {
-                const cam = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), cameraMaterial);
-                cam.position.set(x, y, z);
-                camerasGroup.add(cam);
-            };
-            createCam(-0.9, 0, 0.7);  
-            createCam(0.9, 0, 0.7);   
-            createCam(-0.9, 0, -0.7); 
-            createCam(1.7, -0.5, 0.7); 
-            globalMesh3D.add(camerasGroup);
             
             scene.add(globalMesh3D);
-            camera.position.z = 5;
-            camera.position.y = 0.8; 
+            camera.position.z = 3.5;
+            camera.position.y = 0.5; // Miramos la casa un poco desde arriba
             
-            // Controles
-            renderer.domElement.addEventListener('mousedown', () => isDragging = true);
+            // --- LÓGICA DE INTERACCIÓN (ROTACIÓN MANUAL) ---
+            
+            // Ratón (PC)
+            renderer.domElement.addEventListener('mousedown', (e) => { isDragging = true; });
             renderer.domElement.addEventListener('mousemove', (e) => {
                 if (isDragging && globalMesh3D) {
-                    globalMesh3D.rotation.y += (e.offsetX - previousMousePosition.x) * 0.01;
-                    globalMesh3D.rotation.x += (e.offsetY - previousMousePosition.y) * 0.01;
+                    const deltaX = e.offsetX - previousMousePosition.x;
+                    const deltaY = e.offsetY - previousMousePosition.y;
+                    globalMesh3D.rotation.y += deltaX * 0.01;
+                    globalMesh3D.rotation.x += deltaY * 0.01;
                 }
                 previousMousePosition = { x: e.offsetX, y: e.offsetY };
             });
-            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mouseup', () => { isDragging = false; });
 
+            // Táctil (Móvil)
             renderer.domElement.addEventListener('touchstart', (e) => {
                 isDragging = true;
                 previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
             });
             renderer.domElement.addEventListener('touchmove', (e) => {
                 if (isDragging && globalMesh3D) {
-                    globalMesh3D.rotation.y += (e.touches[0].clientX - previousMousePosition.x) * 0.01;
-                    globalMesh3D.rotation.x += (e.touches[0].clientY - previousMousePosition.y) * 0.01;
+                    const deltaX = e.touches[0].clientX - previousMousePosition.x;
+                    const deltaY = e.touches[0].clientY - previousMousePosition.y;
+                    globalMesh3D.rotation.y += deltaX * 0.01;
+                    globalMesh3D.rotation.x += deltaY * 0.01;
                 }
                 previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
             });
-            window.addEventListener('touchend', () => isDragging = false);
+            window.addEventListener('touchend', () => { isDragging = false; });
 
-            let camPulse = 0;
+            // Animación continua suave si no estamos arrastrando
             const animate = () => {
                 requestAnimationFrame(animate);
-                if(globalMesh3D && !isDragging) globalMesh3D.rotation.y += 0.003;
-                
-                camPulse += 0.1;
-                camerasGroup.children.forEach(c => {
-                    c.material.opacity = 0.5 + Math.sin(camPulse) * 0.5;
-                    c.material.transparent = true;
-                });
+                if(globalMesh3D && !isDragging) {
+                    globalMesh3D.rotation.y += 0.005; // Gira lentamente sola
+                }
                 renderer.render(scene, camera);
             };
             animate();
-        } catch(e) { console.log("3D error"); }
+
+        } catch(e) { console.log("3D Falló silenciosamente"); }
     }
 });
