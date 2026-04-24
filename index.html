@@ -3,24 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uniqality Hub - SOC Professional</title>
+    <title>Uniqality Hub - SOC</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="style.css">
-    
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(r) {
-          for(let i of r) { i.unregister(); console.log("SW Eliminado"); }
-        });
-      }
-    </script>
 </head>
 <body>
     <div class="cyber-grid"></div>
 
     <div id="splash-screen" class="full-screen">
         <div class="splash-content">
-            <img class="main-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMwMEZGOTkiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDwvcGF0aCBkPSJNMTAgMTAgTDkwIDEwIEw4NSA4NSBDODUgODUgNTAgMTAwIDE1IDg1IFogIi8+CiAgICA8cGF0aCBkPSJNNDAgNDAgTDUwIDQwIEw1MCA2MCBDNTAgNjAgNTAgNzAgNDAgNzAgTTU5IDYwIEM1OSA2MCA1OSA3MCA0OSA3MCIvPgogICAgPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI0MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogICAgPGNpcmNsZSBjeD0iNDAiIGN5PSI3MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogICAgPGNpcmNsZSBjeD0iNDkiIGN5PSI3MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogIDwvZz4KPC9zdmc+" alt="Logo">
+            <div class="css-logo">U</div>
             <h1 class="company-name">UNIQALITY<span>HUB</span></h1>
             <div class="loader-bar"><div class="progress-css"></div></div>
             <p class="loader-text" data-i18n="loading">// INICIALIZANDO PROTOCOLOS SOC...</p>
@@ -70,7 +62,7 @@
                 <div class="dashboard-grid">
                     <div class="card model-card">
                         <div id="canvas-3d"></div>
-                        <div class="card-label">NODO_DIGITAL_VIVO</div>
+                        <div class="card-label">PERÍMETRO_VIGILADO_3D</div>
                     </div>
                     <div class="card events-card">
                         <div class="card-header" data-i18n="recent_events">EVENTOS_RECIENTES</div>
