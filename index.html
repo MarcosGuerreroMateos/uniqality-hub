@@ -2,7 +2,7 @@
 <html lang="es" data-theme="green">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Uniqality Hub - SOC</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -10,16 +10,39 @@
 <body>
     <div class="cyber-grid"></div>
 
-    <div class="app-container">
-        <section id="view-dashboard" class="view active">
-            <header>
-                <p class="subtitle">// UNIQALITY_PERIMETER</p>
-                <h1 data-i18n="status_ok">TODO BAJO CONTROL</h1>
-            </header>
+    <div id="login-screen" class="screen active">
+        <div class="login-box">
+            <h1 class="glitch" data-text="UNIQALITY HUB">UNIQALITY HUB</h1>
+            <p class="subtitle" data-i18n="auth_required">// AUTENTICACIÓN REQUERIDA</p>
             
+            <div class="input-group">
+                <input type="text" id="username" placeholder="AGENTE_ID" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="CONTRASEÑA">
+            </div>
+            
+            <button class="cyber-btn" onclick="app.login()" data-i18n="login_btn">ACCEDER AL SISTEMA</button>
+            <p id="login-error" class="error-text" style="display: none;" data-i18n="login_error">Acceso denegado</p>
+        </div>
+    </div>
+
+    <div id="main-app" class="screen">
+        
+        <header class="global-header">
+            <div>
+                <span class="subtitle">// PERIMETER_DEFENSE</span>
+                <h2 data-i18n="status_ok">TODO BAJO CONTROL</h2>
+            </div>
+            <div class="status-indicators">
+                <span class="dot blink-green"></span> <span data-i18n="conn_secure">CONEXIÓN SEGURA</span> | <span id="clock">00:00:00</span>
+            </div>
+        </header>
+
+        <section id="view-dashboard" class="tab-view active">
             <div class="model-container" id="3d-canvas-container">
                 <div class="scanline"></div>
-                <div class="overlay-text">digital_twin / live / touch_to_rotate</div>
+                <div class="overlay-text" data-i18n="digital_twin">digital_twin / live / interactivo</div>
             </div>
 
             <div class="events-section">
@@ -27,44 +50,52 @@
                     <h3 data-i18n="live_events">EVENTOS EN VIVO</h3>
                     <span>conf: last 5m</span>
                 </div>
-                <div id="events-list">
-                    </div>
+                <div id="events-list"></div>
             </div>
         </section>
 
-        <section id="view-terminal" class="view">
-            <header>
-                <p class="subtitle">// SYSTEM_LOGS</p>
-                <h1 data-i18n="nav_logs">Terminal</h1>
-            </header>
+        <section id="view-cameras" class="tab-view">
+            <div class="cameras-grid">
+                <div class="cam-feed">
+                    <div class="cam-overlay"><span class="dot blink-red"></span> CAM 01 - MAIN GATE</div>
+                </div>
+                <div class="cam-feed">
+                    <div class="cam-overlay"><span class="dot blink-red"></span> CAM 02 - SERVER ROOM</div>
+                </div>
+                <div class="cam-feed">
+                    <div class="cam-overlay"><span class="dot blink-red"></span> CAM 03 - BACKYARD</div>
+                </div>
+                <div class="cam-feed offline">
+                    <div class="cam-overlay">CAM 04 - OFFLINE</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-terminal" class="tab-view">
             <div class="terminal-window">
-                <div class="terminal-header">root@uniqality:~# tail -f /var/log/mail.log</div>
+                <div class="terminal-header">root@uniqality:~# tail -f /var/log/syslog</div>
                 <div id="terminal-output"></div>
             </div>
         </section>
 
-        <section id="view-settings" class="view">
-            <header>
-                <p class="subtitle">// CONFIGURATION</p>
-                <h1 data-i18n="nav_settings">Ajustes</h1>
-            </header>
+        <section id="view-settings" class="tab-view">
             <div class="settings-list">
                 <div class="setting-item">
                     <span data-i18n="language">Idioma</span>
-                    <select id="lang-select" onchange="app.changeLanguage(this.value)">
-                        <option value="es">Español</option>
-                        <option value="en">English</option>
-                    </select>
+                    <div class="btn-group">
+                        <button onclick="app.changeLanguage('es')">ES</button>
+                        <button onclick="app.changeLanguage('en')">EN</button>
+                    </div>
                 </div>
                 <div class="setting-item">
-                    <span data-i18n="theme_color">Color de Neón</span>
+                    <span data-i18n="theme_color">Color del Sistema</span>
                     <div class="color-picker">
                         <button class="color-btn" style="background: #00ff99;" onclick="app.changeTheme('green')"></button>
                         <button class="color-btn" style="background: #00e5ff;" onclick="app.changeTheme('cyan')"></button>
                         <button class="color-btn" style="background: #ff00ff;" onclick="app.changeTheme('magenta')"></button>
                     </div>
                 </div>
-                <button class="danger-btn" onclick="app.clearCache()" data-i18n="clear_cache">Limpiar Caché Local</button>
+                <button class="danger-btn" onclick="app.logout()" data-i18n="logout_btn">CERRAR SESIÓN</button>
             </div>
         </section>
 
@@ -72,6 +103,10 @@
             <button class="nav-btn active" onclick="app.switchTab('dashboard', this)">
                 <span class="icon">⊞</span>
                 <span data-i18n="nav_dashboard">Panel</span>
+            </button>
+            <button class="nav-btn" onclick="app.switchTab('cameras', this)">
+                <span class="icon">◎</span>
+                <span data-i18n="nav_cameras">Cámaras</span>
             </button>
             <button class="nav-btn" onclick="app.switchTab('terminal', this)">
                 <span class="icon">⌨</span>
