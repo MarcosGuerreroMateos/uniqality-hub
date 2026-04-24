@@ -1,38 +1,64 @@
+// DICCIONARIO COMPLETO
 const i18n = {
-    es: { auth_title: "ACCESO RESTRINGIDO", status_ok: "SISTEMA_OK", settings: "AJUSTES", lang: "IDIOMA" },
-    en: { auth_title: "RESTRICTED ACCESS", status_ok: "SYSTEM_GO", settings: "SETTINGS", lang: "LANGUAGE" }
+    es: { 
+        loading: "// INICIALIZANDO PROTOCOLOS SOC...",
+        auth_title: "ACCESO RESTRINGIDO", 
+        auth_sub: "// IDENTIFICACIÓN DE AGENTE",
+        login_btn: "VALIDAR CREDENCIALES",
+        login_err: "ERROR: CREDENCIALES NO VÁLIDAS",
+        sys_active: "SISTEMA_ACTIVO",
+        recent_events: "EVENTOS_RECIENTES",
+        settings: "CONFIGURACIÓN", 
+        lang: "IDIOMA",
+        theme: "TEMA DE NEÓN",
+        logout: "DESCONECTAR"
+    },
+    en: { 
+        loading: "// INITIALIZING SOC PROTOCOLS...",
+        auth_title: "RESTRICTED ACCESS", 
+        auth_sub: "// AGENT IDENTIFICATION REQUIRED",
+        login_btn: "VALIDATE CREDENTIALS",
+        login_err: "ERROR: INVALID CREDENTIALS",
+        sys_active: "SYSTEM_ACTIVE",
+        recent_events: "RECENT EVENTS",
+        settings: "SYSTEM SETTINGS", 
+        lang: "LANGUAGE",
+        theme: "NEON THEME",
+        logout: "DISCONNECT"
+    }
 };
 
-// ESPERAMOS A QUE EL NAVEGADOR LEA EL HTML
+let globalMesh3D = null; // Guardamos la casa 3D en memoria
+let isDragging = false;  // Variable para saber si estamos arrastrando la casa
+let previousMousePosition = { x: 0, y: 0 };
+
 document.addEventListener("DOMContentLoaded", function() {
     
-    // 1. CARGA BLINDADA (A los 3 segundos MUESTRA EL LOGIN SÍ O SÍ)
+    // CARGA VISUAL A LOS 3 SEGS
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         const login = document.getElementById('login-screen');
         if(splash) splash.classList.add('hidden');
         if(login) login.classList.remove('hidden');
-    }, 3000); // <-- 3 segundos clavados.
+    }, 3000);
 
-    // 2. CONFIGURACIÓN INICIAL
+    // CONFIG INICIAL
     const theme = localStorage.getItem('theme') || 'green';
     const lang = localStorage.getItem('lang') || 'es';
     
-    document.documentElement.setAttribute('data-theme', theme);
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        if(i18n[lang][el.dataset.i18n]) el.innerText = i18n[lang][el.dataset.i18n];
-    });
+    applyTheme(theme);
+    applyLanguage(lang);
 
     const langSelect = document.getElementById('lang-toggle');
     if(langSelect) langSelect.value = lang;
 
-    // 3. RELOJ
+    // RELOJ
     setInterval(() => {
         const clock = document.getElementById('current-time');
         if(clock) clock.innerText = new Date().toLocaleTimeString();
     }, 1000);
 
-    // 4. EVENTOS DE BOTONES
+    // LOGIN
     const btnLogin = document.getElementById('btn-login');
     if(btnLogin) {
         btnLogin.onclick = function() {
@@ -42,16 +68,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
                 
-                // Disparamos las funciones internas una vez logueados
                 loadLogs();
                 loadEvents();
-                setTimeout(() => init3D(theme), 500);
+                setTimeout(() => init3D(localStorage.getItem('theme') || 'green'), 500);
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
             }
         };
     }
 
+    // TABS NAVEGACIÓN
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -61,30 +87,53 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     });
 
+    // CAMBIAR IDIOMA EN VIVO
     if(langSelect) {
         langSelect.onchange = function(e) {
-            localStorage.setItem('lang', e.target.value);
-            location.reload(); // Recarga simple para aplicar idioma
+            applyLanguage(e.target.value);
         };
     }
 
+    // CAMBIAR COLOR EN VIVO
     document.querySelectorAll('.theme-opt').forEach(opt => {
         opt.onclick = function() {
-            const t = this.dataset.t;
-            document.documentElement.setAttribute('data-theme', t);
-            localStorage.setItem('theme', t);
-            // El 3D no lo actualizamos al vuelo para no romperlo, se aplica al recargar
+            applyTheme(this.dataset.t);
         };
     });
 
     const btnLogout = document.getElementById('btn-logout');
     if(btnLogout) btnLogout.onclick = () => location.reload();
 
-    // 5. FUNCIONES SECUNDARIAS
+    // --- FUNCIONES DE SOPORTE ---
+    
+    function applyLanguage(l) {
+        localStorage.setItem('lang', l);
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.dataset.i18n;
+            if(i18n[l] && i18n[l][key]) el.innerText = i18n[l][key];
+        });
+    }
+
+    function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
+        
+        // Si la casa 3D está cargada, le cambiamos el color instantáneamente a sus partes
+        if(globalMesh3D) {
+            let hexColor = 0x00ff99; // verde
+            if(t === 'cyan') hexColor = 0x00e5ff;
+            if(t === 'magenta') hexColor = 0xff00ff;
+            
+            globalMesh3D.children.forEach(child => {
+                child.material.color.setHex(hexColor);
+            });
+        }
+    }
+
     function loadLogs() {
         const log = document.getElementById('terminal-log');
         if(!log) return;
-        const lines = ["BOOT_OS...", "NET_PROTOCOLS: OK", "ESTABLISHING VPN...", "SYSTEM READY."];
+        const lines = ["BOOT_OS...", "NET_PROTOCOLS: OK", "ESTABLISHING VPN...", "PERIMETER SHIELD: ACTIVE", "SYSTEM READY."];
         lines.forEach((line, i) => {
             setTimeout(() => {
                 log.innerHTML += `<div class="log-line sys">[${new Date().toLocaleTimeString()}] ${line}</div>`;
@@ -101,6 +150,10 @@ document.addEventListener("DOMContentLoaded", function() {
     function init3D(currentTheme) {
         const container = document.getElementById('canvas-3d');
         if(!container || typeof THREE === 'undefined') return;
+        
+        // Limpiamos por si se ejecuta dos veces
+        container.innerHTML = ''; 
+
         try {
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
@@ -108,143 +161,75 @@ document.addEventListener("DOMContentLoaded", function() {
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
             
-            const geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
             let hexColor = 0x00ff99;
             if(currentTheme === 'cyan') hexColor = 0x00e5ff;
             if(currentTheme === 'magenta') hexColor = 0xff00ff;
             
             const material = new THREE.MeshBasicMaterial({ color: hexColor, wireframe: true });
-            const obj = new THREE.Mesh(geometry, material);
-            scene.add(obj);
-            camera.position.z = 4;
             
+            // --- CONSTRUCCIÓN DE LA CASA 3D ---
+            globalMesh3D = new THREE.Group();
+
+            // 1. Base de la casa (Cubo)
+            const baseGeo = new THREE.BoxGeometry(1.5, 1.2, 1.5);
+            const base = new THREE.Mesh(baseGeo, material);
+            base.position.y = -0.6; // Bajamos la base un poco
+
+            // 2. Techo de la casa (Pirámide)
+            const roofGeo = new THREE.ConeGeometry(1.2, 1, 4);
+            const roof = new THREE.Mesh(roofGeo, material);
+            roof.position.y = 0.5; // Subimos el techo
+            roof.rotation.y = Math.PI / 4; // Giramos 45º para alinear las esquinas con la base
+
+            // Juntamos las piezas
+            globalMesh3D.add(base);
+            globalMesh3D.add(roof);
+            
+            scene.add(globalMesh3D);
+            camera.position.z = 3.5;
+            camera.position.y = 0.5; // Miramos la casa un poco desde arriba
+            
+            // --- LÓGICA DE INTERACCIÓN (ROTACIÓN MANUAL) ---
+            
+            // Ratón (PC)
+            renderer.domElement.addEventListener('mousedown', (e) => { isDragging = true; });
+            renderer.domElement.addEventListener('mousemove', (e) => {
+                if (isDragging && globalMesh3D) {
+                    const deltaX = e.offsetX - previousMousePosition.x;
+                    const deltaY = e.offsetY - previousMousePosition.y;
+                    globalMesh3D.rotation.y += deltaX * 0.01;
+                    globalMesh3D.rotation.x += deltaY * 0.01;
+                }
+                previousMousePosition = { x: e.offsetX, y: e.offsetY };
+            });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            // Táctil (Móvil)
+            renderer.domElement.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
+            renderer.domElement.addEventListener('touchmove', (e) => {
+                if (isDragging && globalMesh3D) {
+                    const deltaX = e.touches[0].clientX - previousMousePosition.x;
+                    const deltaY = e.touches[0].clientY - previousMousePosition.y;
+                    globalMesh3D.rotation.y += deltaX * 0.01;
+                    globalMesh3D.rotation.x += deltaY * 0.01;
+                }
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
+            window.addEventListener('touchend', () => { isDragging = false; });
+
+            // Animación continua suave si no estamos arrastrando
             const animate = () => {
                 requestAnimationFrame(animate);
-                obj.rotation.x += 0.01;
-                obj.rotation.y += 0.01;
+                if(globalMesh3D && !isDragging) {
+                    globalMesh3D.rotation.y += 0.005; // Gira lentamente sola
+                }
                 renderer.render(scene, camera);
             };
             animate();
+
         } catch(e) { console.log("3D Falló silenciosamente"); }
     }
-});const i18n = {
-    es: { auth_title: "ACCESO RESTRINGIDO", status_ok: "SISTEMA_OK", settings: "AJUSTES", lang: "IDIOMA" },
-    en: { auth_title: "RESTRICTED ACCESS", status_ok: "SYSTEM_GO", settings: "SETTINGS", lang: "LANGUAGE" }
-};
-
-const app = {
-    init() {
-        console.log("Iniciando...");
-        this.runSplash();
-        this.bindEvents();
-        this.startClock();
-    },
-
-    runSplash() {
-        const bar = document.querySelector('.progress');
-        let width = 0;
-        
-        // Animación de la barra
-        const interval = setInterval(() => {
-            width += 5;
-            if (bar) bar.style.width = width + '%';
-            if (width >= 100) {
-                clearInterval(interval);
-                this.showLogin();
-            }
-        }, 50);
-
-        // SEGURO DE VIDA: A los 3 segundos, entramos sí o sí, pase lo que pase
-        setTimeout(() => this.showLogin(), 3000);
-    },
-
-    showLogin() {
-        const splash = document.getElementById('splash-screen');
-        const login = document.getElementById('login-screen');
-        
-        if(splash) splash.style.display = 'none';
-        if(login) {
-            login.classList.remove('hidden');
-            login.style.display = 'flex';
-            login.style.opacity = '1';
-        }
-    },
-
-    bindEvents() {
-        const btn = document.getElementById('btn-login');
-        if(btn) btn.onclick = () => this.login();
-
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.onclick = () => this.switchTab(item.dataset.tab, item);
-        });
-
-        const logout = document.getElementById('btn-logout');
-        if(logout) logout.onclick = () => location.reload();
-    },
-
-    login() {
-        const u = document.getElementById('username').value;
-        const p = document.getElementById('password').value;
-
-        if(u !== "" && p !== "") {
-            document.getElementById('login-screen').style.display = 'none';
-            const main = document.getElementById('main-app');
-            main.classList.remove('hidden');
-            main.style.display = 'flex';
-            
-            // Intentar cargar el 3D después de entrar
-            setTimeout(() => this.init3D(), 500);
-            this.loadLogs();
-        } else {
-            document.getElementById('login-error').classList.remove('hidden');
-        }
-    },
-
-    switchTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-        document.getElementById(`tab-${tabId}`).classList.add('active');
-        btn.classList.add('active');
-    },
-
-    init3D() {
-        const container = document.getElementById('canvas-3d');
-        if(!container || typeof THREE === 'undefined') return;
-        
-        try {
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            container.appendChild(renderer.domElement);
-
-            const geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
-            const material = new THREE.MeshBasicMaterial({ color: 0x00ff99, wireframe: true });
-            const mesh = new THREE.Mesh(geometry, material);
-            scene.add(mesh);
-            camera.position.z = 4;
-
-            const animate = () => {
-                requestAnimationFrame(animate);
-                mesh.rotation.x += 0.01;
-                mesh.rotation.y += 0.01;
-                renderer.render(scene, camera);
-            };
-            animate();
-        } catch(e) { console.log("Error 3D"); }
-    },
-
-    startClock() {
-        setInterval(() => {
-            const clock = document.getElementById('current-time');
-            if(clock) clock.innerText = new Date().toLocaleTimeString();
-        }, 1000);
-    },
-
-    loadLogs() {
-        const log = document.getElementById('terminal-log');
-        if(log) log.innerHTML = "SISTEMA CARGADO. BIENVENIDO AGENTE.";
-    }
-};
-
-window.onload = () => app.init();
+});
