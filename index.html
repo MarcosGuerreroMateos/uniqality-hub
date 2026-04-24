@@ -3,6 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uniqality Hub - SOC Professional</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(r) {
+          for(let i of r) { i.unregister(); console.log("SW Eliminado"); }
+        });
+      }
+    </script>
+</head>
+<body>
+    <div class="cyber-grid"></div>
+
+    <div id="splash-screen" class="full-screen">
+        <div class="splash-content">
+            <img class="main-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMwMEZGOTkiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDwvcGF0aCBkPSJNMTAgMTAgTDkwIDEwIEw4NSA4NSBDODUgODUgNTAgMTAwIDE1IDg1IFogIi8+CiAgICA8cGF0aCBkPSJNNDAgNDAgTDUwIDQwIEw1MCA2MCBDNTAgNjAgNTAgNzAgNDAgNzAgTTU5IDYwIEM1OSA2MCA1OSA3MCA0OSA3MCIvPgogICAgPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI0MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogICAgPGNpcmNsZSBjeD0iNDAiIGN5PSI3MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogICAgPGNpcmNsZSBjeD0iNDkiIGN5PSI3MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogIDwvZz4KPC9zdmc+" alt="Logo">
+            <h1 class="company-name">UNIQALITY<span>HUB</span></h1>
+            <div class="loader-bar"><div class="progress-css"></div></div>
+            <p class="loader-text" data-i18n="loading">// INICIALIZANDO PROTOCOLOS SOC...</p>
+        </div>
+    </div>
+
+    <div id="login-screen" class="full-screen hidden">
+        <div class="login-container">
+            <div class="login-header">
+                <h2 data-i18n="auth_title">ACCESO RESTRINGIDO</h2>
+                <p data-i18n="auth_sub">// IDENTIFICACIÓN DE AGENTE</p>
+            </div>
+            <div class="login-form">
+                <div class="input-field">
+                    <label>ID_USER</label>
+                    <input type="text" id="username" placeholder="Ingrese ID">
+                </div>
+                <div class="input-field">
+                    <label>ACCESS_KEY</label>
+                    <input type="password" id="password" placeholder="••••••••">
+                </div>
+                <button class="login-btn" id="btn-login" data-i18n="login_btn">VALIDAR CREDENCIALES</button>
+                <p id="login-error" class="error-msg hidden" data-i18n="login_err">ERROR: CREDENCIALES NO VÁLIDAS</p>
+            </div>
+        </div>
+    </div>
+
+    <main id="main-app" class="hidden">
+        <nav class="side-nav">
+            <div class="nav-logo">U</div>
+            <button class="nav-item active" data-tab="dashboard">⊞</button>
+            <button class="nav-item" data-tab="cameras">◎</button>
+            <button class="nav-item" data-tab="terminal">⌨</button>
+            <button class="nav-item" data-tab="settings">⚙</button>
+        </nav>
+
+        <div class="content-area">
+            <header class="top-bar">
+                <div class="system-info">
+                    <span class="status-tag blinking" data-i18n="sys_active">SISTEMA_ACTIVO</span>
+                    <span id="current-time">00:00:00</span>
+                </div>
+                <div class="user-profile">AGENTE_SOC_01</div>
+            </header>
+
+            <section id="tab-dashboard" class="tab-content active">
+                <div class="dashboard-grid">
+                    <div class="card model-card">
+                        <div id="canvas-3d"></div>
+                        <div class="card-label">NODO_DIGITAL_VIVO</div>
+                    </div>
+                    <div class="card events-card">
+                        <div class="card-header" data-i18n="recent_events">EVENTOS_RECIENTES</div>
+                        <div id="event-feed" class="feed"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-cameras" class="tab-content">
+                <div class="cam-grid">
+                    <div class="cam-box"><div class="cam-label">CAM_01_MAIN</div><div class="noise"></div></div>
+                    <div class="cam-box"><div class="cam-label">CAM_02_SERVER</div><div class="noise"></div></div>
+                    <div class="cam-box"><div class="cam-label">CAM_03_BACK</div><div class="noise"></div></div>
+                    <div class="cam-box offline"><div class="cam-label">CAM_04_ERROR</div><div class="offline-mask"></div></div>
+                </div>
+            </section>
+
+            <section id="tab-terminal" class="tab-content">
+                <div class="terminal-box">
+                    <div id="terminal-log"></div>
+                    <div class="cursor">_</div>
+                </div>
+            </section>
+
+            <section id="tab-settings" class="tab-content">
+                <div class="settings-pane">
+                    <h3 data-i18n="settings">CONFIGURACIÓN</h3>
+                    <div class="setting-row">
+                        <label data-i18n="lang">IDIOMA</label>
+                        <select id="lang-toggle">
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <label data-i18n="theme">TEMA DE NEÓN</label>
+                        <div class="theme-switch">
+                            <span class="theme-opt" data-t="green" style="background:#00ff99"></span>
+                            <span class="theme-opt" data-t="cyan" style="background:#00e5ff"></span>
+                            <span class="theme-opt" data-t="magenta" style="background:#ff00ff"></span>
+                        </div>
+                    </div>
+                    <button class="logout-btn" id="btn-logout" data-i18n="logout">DESCONECTAR</button>
+                </div>
+            </section>
+        </div>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html><!DOCTYPE html>
+<html lang="es" data-theme="green">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Uniqality Hub - SOC</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="style.css">
