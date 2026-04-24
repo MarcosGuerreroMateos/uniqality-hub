@@ -1,454 +1,288 @@
-// --- DICCIONARIO DE IDIOMAS ---
 const i18n = {
-    es: {
-        auth_required: "// AUTENTICACIÓN REQUERIDA",
-        login_btn: "ACCEDER AL SISTEMA",
-        login_error: "Credenciales incorrectas.",
-        status_ok: "TODO BAJO CONTROL",
-        conn_secure: "CONEXIÓN SEGURA",
-        digital_twin: "digital_twin / live / interactivo",
-        live_events: "EVENTOS EN VIVO",
-        nav_dashboard: "Panel",
-        nav_cameras: "Cámaras",
-        nav_logs: "Terminal",
-        nav_settings: "Ajustes",
-        language: "Idioma del Sistema",
-        theme_color: "Color del Sistema",
-        logout_btn: "CERRAR SESIÓN"
-    },
-    en: {
-        auth_required: "// AUTHENTICATION REQUIRED",
-        login_btn: "SYSTEM LOGIN",
-        login_error: "Access denied. Invalid credentials.",
-        status_ok: "ALL SYSTEMS GO",
-        conn_secure: "SECURE CONNECTION",
-        digital_twin: "digital_twin / live / touch_to_rotate",
-        live_events: "LIVE EVENTS",
-        nav_dashboard: "Overview",
-        nav_cameras: "Cameras",
-        nav_logs: "Terminal",
-        nav_settings: "Settings",
-        language: "System Language",
-        theme_color: "System Color",
-        logout_btn: "LOGOUT"
-    }
+    es: { auth_title: "ACCESO RESTRINGIDO", status_ok: "SISTEMA_OK", settings: "AJUSTES", lang: "IDIOMA" },
+    en: { auth_title: "RESTRICTED ACCESS", status_ok: "SYSTEM_GO", settings: "SETTINGS", lang: "LANGUAGE" }
 };
 
-const app = {
-    lang: 'es',
-    scene3DInitialized: false, // Control para no cargar el 3D dos veces
-
-    init() {
-        // Cargar preferencias guardadas
-        if(localStorage.getItem('theme')) this.changeTheme(localStorage.getItem('theme'));
-        if(localStorage.getItem('lang')) this.changeLanguage(localStorage.getItem('lang'));
-        
-        // Iniciar reloj
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString();
-        }, 1000);
-    },
-
-    // --- SISTEMA DE LOGIN ---
-    login() {
-        const user = document.getElementById('username').value;
-        const pass = document.getElementById('password').value;
-
-        // Validar (Pon aquí la contraseña que quieras, por ahora acepta cualquiera si no está vacío)
-        if(user !== "" && pass !== "") {
-            document.getElementById('login-screen').classList.remove('active');
-            document.getElementById('main-app').classList.add('active');
-            
-            // Cargar datos y 3D solo cuando entramos
-            this.loadEvents();
-            this.loadTerminal();
-            if(!this.scene3DInitialized) {
-                init3DModel();
-                this.scene3DInitialized = true;
-            }
-        } else {
-            document.getElementById('login-error').style.display = 'block';
-        }
-    },
-
-    logout() {
-        document.getElementById('main-app').classList.remove('active');
-        document.getElementById('login-screen').classList.add('active');
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-        document.getElementById('login-error').style.display = 'none';
-        this.switchTab('dashboard', document.querySelector('.nav-btn')); // Resetear pestaña
-    },
-
-    // --- NAVEGACIÓN DE PESTAÑAS ---
-    switchTab(tabId, btnElement) {
-        // 1. Ocultar todas las secciones
-        document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
-        // 2. Quitar color activo a todos los botones
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        
-        // 3. Mostrar la seleccionada
-        document.getElementById(`view-${tabId}`).classList.add('active');
-        btnElement.classList.add('active');
-    },
-
-    // --- AJUSTES (TEMA E IDIOMA) ---
-    changeTheme(colorName) {
-        document.documentElement.setAttribute('data-theme', colorName);
-        localStorage.setItem('theme', colorName);
-        this.addLog(`[SYSTEM] Color scheme changed to ${colorName}`, 'sys');
-    },
-
-    changeLanguage(langCode) {
-        this.lang = langCode;
-        localStorage.setItem('lang', langCode);
-        
-        // Buscar todos los elementos con data-i18n y cambiar su texto
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if(i18n[langCode][key]) {
-                el.innerText = i18n[langCode][key];
-            }
-        });
-        this.addLog(`[SYSTEM] Language updated to ${langCode.toUpperCase()}`, 'sys');
-    },
-
-    // --- CARGA DE DATOS FALSOS ---
-    loadEvents() {
-        const eventsList = document.getElementById('events-list');
-        eventsList.innerHTML = ''; // Limpiar
-        const events = [
-            { title: 'Movimiento detectado', loc: 'Patio Trasero', time: '12ms', type: '' },
-            { title: 'Vehículo aproximándose', loc: 'Puerta Principal', time: '35s', type: 'warning' },
-            { title: 'Persona no identificada', loc: 'Acceso Servidores', time: '1m', type: 'error' },
-            { title: 'Autenticación OK', loc: 'Gachaval (Remoto)', time: '5m', type: 'ok' }
-        ];
-
-        events.forEach(ev => {
-            let colorClass = ev.type === 'error' ? 'error' : (ev.type === 'warning' ? 'warning' : '');
-            eventsList.innerHTML += `
-                <div class="event-card ${colorClass}">
-                    <div>
-                        <div class="event-title ${colorClass}">${ev.title}</div>
-                        <div class="event-loc">${ev.loc}</div>
-                    </div>
-                    <div style="font-size: 11px; color: #888;">${ev.time}</div>
-                </div>
-            `;
-        });
-    },
-
-    loadTerminal() {
-        const out = document.getElementById('terminal-output');
-        out.innerHTML = ''; // Limpiar
-        const logs = [
-            { txt: 'Starting Uniqality Defense Daemon...' },
-            { txt: 'Loading firewall rules: OK' },
-            { txt: 'Connecting to mail.uniqality.com: SUCCESS' },
-            { txt: 'WARNING: Unauthorized ping sweep detected on port 22', type: 'warn' },
-            { txt: 'Intrusion Prevention System (IPS) activated.', type: 'sys' }
-        ];
-        logs.forEach(log => this.addLog(log.txt, log.type));
-    },
-
-    addLog(text, type = '') {
-        const out = document.getElementById('terminal-output');
-        if(!out) return;
-        out.innerHTML += `<div class="log-line ${type}">> ${text}</div>`;
-        out.scrollTop = out.scrollHeight;
-    }
-};
-
-// --- MOTOR 3D (THREE.JS) ---
-function init3DModel() {
-    const container = document.getElementById('3d-canvas-container');
-    if(!container) return;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(renderer.domElement);
-
-    // Icosaedro (Simulando un nodo o escudo protector)
-    const geometry = new THREE.IcosahedronGeometry(2, 1);
-    const materialLine = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
-    const wireframe = new THREE.LineSegments(new THREE.WireframeGeometry(geometry), materialLine);
-    
-    const materialPoints = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
-    const points = new THREE.Points(geometry, materialPoints);
-
-    const networkNode = new THREE.Group();
-    networkNode.add(wireframe);
-    networkNode.add(points);
-    scene.add(networkNode);
-
-    camera.position.z = 4.5;
-
-    // Rotación manual
-    let isDragging = false;
-    let prevMousePos = { x: 0, y: 0 };
-
-    renderer.domElement.addEventListener('mousedown', () => isDragging = true);
-    renderer.domElement.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-            networkNode.rotation.y += (e.offsetX - prevMousePos.x) * 0.01;
-            networkNode.rotation.x += (e.offsetY - prevMousePos.y) * 0.01;
-        }
-        prevMousePos = { x: e.offsetX, y: e.offsetY };
-    });
-    window.addEventListener('mouseup', () => isDragging = false);
-    
-    // Táctil para móviles
-    renderer.domElement.addEventListener('touchstart', (e) => {
-        isDragging = true;
-        prevMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    });
-    renderer.domElement.addEventListener('touchmove', (e) => {
-        if (isDragging) {
-            networkNode.rotation.y += (e.touches[0].clientX - prevMousePos.x) * 0.01;
-            networkNode.rotation.x += (e.touches[0].clientY - prevMousePos.y) * 0.01;
-        }
-        prevMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    });
-    window.addEventListener('touchend', () => isDragging = false);
-
-    // Bucle
-    function animate() {
-        requestAnimationFrame(animate);
-        if(!isDragging) {
-            networkNode.rotation.y += 0.005;
-            networkNode.rotation.x += 0.002;
-        }
-        renderer.render(scene, camera);
-    }
-    animate();
-
-    // Redimensionar si se cambia el tamaño de la ventana
-    window.addEventListener('resize', () => {
-        if(container.clientWidth > 0) {
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        }
-    });
-}
-
-// Inicializar la app al cargar
-window.onload = () => app.init();// ==========================================
-// 1. SISTEMA DE IDIOMAS (i18n)
-// ==========================================
-const translations = {
-    es: {
-        status_ok: 'TODO BAJO CONTROL',
-        live_events: 'EVENTOS EN VIVO',
-        nav_dashboard: 'Panel',
-        nav_logs: 'Terminal',
-        nav_settings: 'Ajustes',
-        language: 'Idioma del Sistema',
-        theme_color: 'Color de Neón',
-        clear_cache: 'Limpiar Caché Local'
-    },
-    en: {
-        status_ok: 'ALL SYSTEMS GO',
-        live_events: 'LIVE EVENTS',
-        nav_dashboard: 'Overview',
-        nav_logs: 'Terminal',
-        nav_settings: 'Settings',
-        language: 'System Language',
-        theme_color: 'Neon Accent',
-        clear_cache: 'Clear Local Cache'
-    }
-};
-
-// ==========================================
-// 2. CONTROLADOR PRINCIPAL DE LA APP
-// ==========================================
 const app = {
     lang: localStorage.getItem('lang') || 'es',
     theme: localStorage.getItem('theme') || 'green',
+    scene3DInitialized: false,
 
     init() {
-        this.changeTheme(this.theme);
+        console.log("Iniciando Uniqality OS - SOC Professional...");
+        this.runSplash();
+        this.bindEvents();
+        this.startClock();
+        this.setTheme(this.theme);
         this.changeLanguage(this.lang);
-        document.getElementById('lang-select').value = this.lang;
         
-        // Cargar eventos y logs falsos para la demo
-        this.loadEvents();
-        this.loadTerminal();
-
-        // Iniciar motor 3D
-        init3DModel();
+        // Pone el selector de idioma en el valor correcto
+        const langToggle = document.getElementById('lang-toggle');
+        if(langToggle) langToggle.value = this.lang;
     },
 
-    // Navegación de Pestañas
-    switchTab(tabId, btnElement) {
-        // Ocultar todas las vistas
-        document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
-        // Quitar activo de botones
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    runSplash() {
+        const bar = document.querySelector('.progress');
+        let width = 0;
         
-        // Mostrar vista seleccionada
-        document.getElementById(`view-${tabId}`).classList.add('active');
-        btnElement.classList.add('active');
+        // Animación de carga simulada
+        const interval = setInterval(() => {
+            width += Math.random() * 12;
+            if(width > 100) width = 100;
+            
+            if (bar) bar.style.width = width + '%';
+
+            if(width >= 100) {
+                clearInterval(interval);
+                // Pequeño retraso para que se vea el 100%
+                setTimeout(() => this.showLogin(), 600);
+            }
+        }, 180);
+
+        // SEGURIDAD: Si por alguna razón la animación falla, forzamos el login a los 6s
+        setTimeout(() => this.showLogin(), 6000);
     },
 
-    // Cambiar Tema (Colores)
-    changeTheme(colorName) {
-        this.theme = colorName;
-        document.documentElement.setAttribute('data-theme', colorName);
-        localStorage.setItem('theme', colorName);
-        this.addLog(`Sistema de colores actualizado a: ${colorName}`, 'sys');
+    showLogin() {
+        const splash = document.getElementById('splash-screen');
+        const login = document.getElementById('login-screen');
+        if(splash) splash.classList.add('hidden');
+        if(login) login.classList.remove('hidden');
     },
 
-    // Cambiar Idioma
+    bindEvents() {
+        // Botón Login
+        const btnLogin = document.getElementById('btn-login');
+        if(btnLogin) {
+            btnLogin.addEventListener('click', () => this.login());
+        }
+        
+        // Permitir login pulsando ENTER en el campo contraseña
+        const passInput = document.getElementById('password');
+        if(passInput) {
+            passInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.login();
+            });
+        }
+
+        // Navegación de pestañas
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.addEventListener('click', () => this.switchTab(btn.dataset.tab, btn));
+        });
+
+        // Cambio de idioma y tema en ajustes
+        const langToggle = document.getElementById('lang-toggle');
+        if(langToggle) {
+            langToggle.addEventListener('change', (e) => this.changeLanguage(e.target.value));
+        }
+
+        document.querySelectorAll('.theme-opt').forEach(opt => {
+            opt.addEventListener('click', () => this.setTheme(opt.dataset.t));
+        });
+
+        // Botón Desconectar
+        const btnLogout = document.getElementById('btn-logout');
+        if(btnLogout) {
+            btnLogout.addEventListener('click', () => {
+                this.addLog("[SYS] Cerrando sesión...", "warn");
+                setTimeout(() => location.reload(), 800);
+            });
+        }
+    },
+
+    login() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+
+        // Entra con cualquier cosa que no esté vacía (para la demo)
+        if(u !== "" && p !== "") {
+            this.addLog(`[AUTH] Agente ${u} validado. Iniciando interfaz...`, "ok");
+            
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            
+            // Inicializar datos dinámicos solo al entrar
+            if(!this.scene3DInitialized) {
+                this.init3D();
+                this.scene3DInitialized = true;
+            }
+            this.loadLogs();
+            this.loadEvents();
+        } else {
+            const errorMsg = document.getElementById('login-error');
+            if(errorMsg) {
+                errorMsg.classList.remove('hidden');
+                // Ocultar error tras 3 segundos
+                setTimeout(() => errorMsg.classList.add('hidden'), 3000);
+            }
+        }
+    },
+
+    switchTab(tabId, btn) {
+        // Ocultar todas las pestañas
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        // Quitar activo de todos los botones de menú
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        
+        // Mostrar pestaña seleccionada
+        const targetTab = document.getElementById(`tab-${tabId}`);
+        if(targetTab) targetTab.classList.add('active');
+        // Activar botón del menú
+        if(btn) btn.classList.add('active');
+        
+        this.addLog(`[NAV] Accediendo a módulo: ${tabId.toUpperCase()}`);
+    },
+
+    setTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
+        // Actualizar visualmente los botones de tema
+        document.querySelectorAll('.theme-opt').forEach(opt => {
+            opt.classList.remove('active');
+            if(opt.dataset.t === t) opt.classList.add('active');
+        });
+        // Si el motor 3D está cargado, cambiar el color del objeto
+        if(this.mesh3D) {
+            let color;
+            switch(t) {
+                case 'cyan': color = 0x00e5ff; break;
+                case 'magenta': color = 0xff00ff; break;
+                default: color = 0x00ff99; // green
+            }
+            this.mesh3D.material.color.setHex(color);
+        }
+    },
+
     changeLanguage(langCode) {
         this.lang = langCode;
         localStorage.setItem('lang', langCode);
+        
+        // Buscar y traducir todos los elementos con data-i18n
         document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if(translations[langCode][key]) {
-                el.innerText = translations[langCode][key];
+            const key = el.dataset.i18n;
+            if(i18n[langCode] && i18n[langCode][key]) el.innerText = i18n[langCode][key];
+        });
+    },
+
+    startClock() {
+        const clockEl = document.getElementById('current-time');
+        if(clockEl) {
+            setInterval(() => {
+                clockEl.innerText = new Date().toLocaleTimeString();
+            }, 1000);
+        }
+    },
+
+    init3D() {
+        const container = document.getElementById('canvas-3d');
+        // Si Three.js no se cargó, salimos
+        if(!container || typeof THREE === 'undefined') {
+            console.error("Three.js no detectado.");
+            container.innerHTML = "<div style='color:red; padding:20px'>Fallo al cargar motor 3D</div>";
+            return;
+        }
+
+        console.log("Inicializando motor 3D TorusKnot...");
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        // Objeto TorusKnot más complejo y estético
+        const geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
+        
+        // Color inicial basado en el tema
+        let initialColor = 0x00ff99; // green default
+        if(this.theme === 'cyan') initialColor = 0x00e5ff;
+        if(this.theme === 'magenta') initialColor = 0xff00ff;
+
+        const material = new THREE.MeshBasicMaterial({ color: initialColor, wireframe: true });
+        this.mesh3D = new THREE.Mesh(geometry, material);
+        scene.add(this.mesh3D);
+        camera.position.z = 4;
+
+        // Bucle de animación
+        const animate = () => {
+            requestAnimationFrame(animate);
+            this.mesh3D.rotation.x += 0.008;
+            this.mesh3D.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        // Soporte para redimensionar ventana
+        window.addEventListener('resize', () => {
+            if(container.clientWidth > 0) {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
             }
         });
-        this.addLog(`Language changed to: ${langCode.toUpperCase()}`, 'sys');
     },
 
-    // Borrar Caché
-    clearCache() {
-        localStorage.clear();
-        alert('Caché limpiado. La app se reiniciará.');
-        location.reload();
-    },
-
-    // Inyectar Eventos en el HTML
-    loadEvents() {
-        const eventsList = document.getElementById('events-list');
-        const events = [
-            { title: 'Intrusión bloqueada', loc: 'Firewall Externo', time: '12ms', type: 'error' },
-            { title: 'Autenticación DKIM OK', loc: 'mail.uniqality.com', time: '1s', type: 'ok' },
-            { title: 'Greylisting Activo', loc: 'Conexión SMTP entrante', time: '45s', type: 'warning' },
-            { title: 'Sincronización MariaDB', loc: 'Base de datos identidades', time: '2m', type: 'ok' }
+    loadLogs() {
+        const log = document.getElementById('terminal-log');
+        if(!log) return;
+        log.innerHTML = ""; // Limpiar
+        const lines = [
+            {t: "BOOT", m: "Iniciando Uniqality SOC OS v3.1..."},
+            {t: "SYS", m: "NET_PROTOCOLS: OK"},
+            {t: "SYS", m: "FIREWALL_RULES: LOADED"},
+            {t: "SYS", m: "ESTABLISHING VPN UNIQALITY_HUB..."},
+            {t: "SYS", m: "ENCRYPTION: AES-256 ACTIVE"},
+            {t: "OK", m: "CONEXIÓN ESTABLECIDA CON SERVIDOR DE CORREO"},
+            {t: "SYS", m: "CÁMARAS DE VIGILANCIA: ONLINE (3/4)"},
+            {t: "WARN", m: "CAM_04: SEÑAL PERDIDA", type: 'warn'},
+            {t: "OK", m: "SISTEMA DE EVENTOS INICIADO."},
+            {t: "SYS", m: "ESPERANDO ÓRDENES DEL AGENTE..."}
         ];
-
-        events.forEach(ev => {
-            let colorClass = ev.type === 'error' ? 'error' : (ev.type === 'warning' ? 'warning' : '');
-            eventsList.innerHTML += `
-                <div class="event-card ${colorClass}">
-                    <div>
-                        <div class="event-title ${colorClass}">${ev.title}</div>
-                        <div class="event-loc">${ev.loc}</div>
-                    </div>
-                    <div style="font-size: 11px; color: #888;">${ev.time}</div>
-                </div>
-            `;
+        lines.forEach((l, i) => {
+            setTimeout(() => {
+                let typeClass = l.type || '';
+                log.innerHTML += `<div class="log-line ${typeClass}">[${l.t}] ${l.m}</div>`;
+                log.scrollTop = log.scrollHeight; // Auto-scroll
+            }, i * 350);
         });
     },
 
-    // Simulador de Terminal
-    loadTerminal() {
-        const logs = [
-            { txt: 'postfix/smtpd[1234]: connect from unknown[192.168.1.1]' },
-            { txt: 'postfix/cleanup[1235]: 4F3A2B1C: message-id=<test@...>' },
-            { txt: 'iredapd[432]: Greylisting active for unknown IP', type: 'warn' },
-            { txt: 'ERROR: connection refused by external MTA', type: 'err' }
+    loadEvents() {
+        const feed = document.getElementById('event-feed');
+        if(!feed) return;
+        feed.innerHTML = ""; // Limpiar antes de cargar
+        const evs = [
+            { t: "AUTH_SUCCESS", m: "Acceso Agente 01 SOC", s: "ok" },
+            { t: "DNS_CHECK", m: "Registros SPF/DKIM uniqality.com verificados", s: "ok" },
+            { t: "MAIL_SENT", m: "Firma corporativa aplicada a mguerrero@", s: "ok" },
+            { t: "CAM_LOSS", m: "Fallo de señal en CAM_04 (Parking)", s: "error" },
+            { t: "NET_SCAN", m: "Escaneo de puertos detectado (bloqueado IP extern)", s: "warning" },
+            { t: "DB_SYNC", m: "Sincronización MariaDB identities completada", s: "ok" }
         ];
-        logs.forEach(log => this.addLog(log.txt, log.type));
+        evs.forEach(e => {
+            let severityClass = e.s === 'error' ? 'error' : (e.s === 'warning' ? 'warning' : '');
+            feed.innerHTML += `
+                <div class="event-card ${severityClass}" style="padding:12px; margin-bottom:10px; border-left:3px solid">
+                    <strong style="text-transform:uppercase">${e.t}</strong><br>
+                    <span style="font-size:12px; color:#aaa">${e.m}</span>
+                </div>`;
+        });
     },
 
     addLog(text, type = '') {
-        const out = document.getElementById('terminal-output');
-        out.innerHTML += `<div class="log-line ${type}">> ${text}</div>`;
-        out.scrollTop = out.scrollHeight; // Auto-scroll
+        const out = document.getElementById('terminal-output'); // Ojo, el ID en html es terminal-log
+        const log = document.getElementById('terminal-log');
+        if(!log) return;
+        
+        let typeClass = '';
+        if(type === 'warn') typeClass = 'warn';
+        if(type === 'error') typeClass = 'err';
+        if(type === 'sys') typeClass = 'sys';
+        if(type === 'ok') typeClass = '';
+
+        log.innerHTML += `<div class="log-line ${typeClass}">> ${text}</div>`;
+        log.scrollTop = log.scrollHeight;
     }
 };
 
-// ==========================================
-// 3. MOTOR 3D (THREE.JS)
-// ==========================================
-function init3DModel() {
-    const container = document.getElementById('3d-canvas-container');
-    
-    // Escena, Cámara y Renderizador
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true }); // alpha:true permite fondo transparente
-    
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(renderer.domElement);
-
-    // Crear la estructura de un Nodo (Icosaedro como wireframe)
-    const geometry = new THREE.IcosahedronGeometry(2, 1);
-    
-    // Material del alambre (usaremos blanco, y CSS le dará el glow)
-    const materialLine = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 });
-    const wireframe = new THREE.LineSegments(new THREE.WireframeGeometry(geometry), materialLine);
-    
-    // Nodos en las intersecciones (puntos)
-    const materialPoints = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
-    const points = new THREE.Points(geometry, materialPoints);
-
-    // Agrupar ambos
-    const networkNode = new THREE.Group();
-    networkNode.add(wireframe);
-    networkNode.add(points);
-    scene.add(networkNode);
-
-    camera.position.z = 5;
-
-    // Variables para rotación manual (Táctil/Ratón)
-    let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
-
-    // Eventos de ratón/táctil para girar el modelo 3D
-    renderer.domElement.addEventListener('mousedown', (e) => { isDragging = true; });
-    renderer.domElement.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-            const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
-            networkNode.rotation.y += deltaMove.x * 0.01;
-            networkNode.rotation.x += deltaMove.y * 0.01;
-        }
-        previousMousePosition = { x: e.offsetX, y: e.offsetY };
-    });
-    window.addEventListener('mouseup', () => { isDragging = false; });
-    
-    // Soporte táctil móvil
-    renderer.domElement.addEventListener('touchstart', (e) => {
-        isDragging = true;
-        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    });
-    renderer.domElement.addEventListener('touchmove', (e) => {
-        if (isDragging) {
-            const deltaMove = { x: e.touches[0].clientX - previousMousePosition.x, y: e.touches[0].clientY - previousMousePosition.y };
-            networkNode.rotation.y += deltaMove.x * 0.01;
-            networkNode.rotation.x += deltaMove.y * 0.01;
-        }
-        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    });
-    window.addEventListener('touchend', () => { isDragging = false; });
-
-    // Bucle de animación
-    function animate() {
-        requestAnimationFrame(animate);
-        // Rotación automática lenta
-        if(!isDragging) {
-            networkNode.rotation.y += 0.005;
-            networkNode.rotation.x += 0.002;
-        }
-        renderer.render(scene, camera);
-    }
-    
-    animate();
-
-    // Redimensionar el lienzo si cambia la pantalla
-    window.addEventListener('resize', () => {
-        camera.aspect = container.clientWidth / container.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
-    });
-}
-
-// Arrancar la App cuando cargue la web
+// Arrancar cuando la ventana esté lista
 window.onload = () => app.init();
