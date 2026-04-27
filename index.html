@@ -5,11 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Meta tags para PWA -->
+    <meta name="theme-color" content="#00ff99">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Uniqality Hub">
+    <meta name="description" content="Security Operations Center - Panel de Control SOC">
+    
     <title>Uniqality Hub — SOC</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Link al manifest PWA -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons PWA -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%2305070a' width='192' height='192'/><text x='50%' y='50%' font-size='100' font-weight='bold' fill='%2300ff99' text-anchor='middle' dominant-baseline='central' font-family='Orbitron'>U</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%2305070a' width='180' height='180' rx='40'/><text x='50%' y='50%' font-size='100' font-weight='bold' fill='%2300ff99' text-anchor='middle' dominant-baseline='central' font-family='Orbitron'>U</text></svg>">
 </head>
 <body>
 
@@ -74,7 +89,7 @@
                         <span class="btn-text" data-i18n="login_btn">VALIDAR CREDENCIALES</span>
                         <span class="btn-arrow">→</span>
                     </button>
-                    <p id="login-error" class="error-msg hidden" data-i18n="login_err">⚠ ERROR: CREDENCIALES NO VÁLIDAS</p>
+                    <p id="login-error" class="error-msg hidden" data-i18n="login_err">⚠ ERROR: CREDENCIALES NO V��LIDAS</p>
                     <p class="login-hint">Tip: cualquier usuario/contraseña funciona</p>
                 </div>
             </div>
@@ -293,5 +308,51 @@
     </main>
 
     <script src="app.js"></script>
+    
+    <!-- Script para registrar el Service Worker y PWA -->
+    <script>
+        // Registrar el Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then((registration) => {
+                    console.log('✓ Service Worker registrado:', registration);
+                    
+                    // Verificar actualizaciones periódicamente
+                    setInterval(() => {
+                        registration.update();
+                    }, 3600000); // Cada hora
+                    
+                    // Escuchar si hay una nueva versión disponible
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'activated') {
+                                console.log('✓ Nueva versión disponible');
+                                // Mostrar notificación
+                                if (confirm('📢 Nueva versión disponible. ¿Actualizar ahora?')) {
+                                    window.location.reload();
+                                }
+                            }
+                        });
+                    });
+                })
+                .catch((error) => {
+                    console.log('✗ Error al registrar Service Worker:', error);
+                });
+        }
+        
+        // Permitir instalación en iOS y Android
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('✓ Evento de instalación capturado');
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            console.log('✓ App instalada correctamente');
+        });
+    </script>
+
 </body>
 </html>
