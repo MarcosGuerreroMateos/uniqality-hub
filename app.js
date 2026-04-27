@@ -64,13 +64,207 @@ const i18n = {
     }
 };
 
-let globalMesh3D = null; // Guardamos la casa 3D en memoria
-let isDragging = false;  // Variable para saber si estamos arrastrando la casa
+let globalMesh3D = null;
+let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
+let terminalInput = ""; // Para almacenar lo que escribe el usuario
+
+// COMANDOS DEL TERMINAL SIMULADOS
+const terminalCommands = {
+    help: {
+        es: `
+╔════════════════════════════════════════════════════════════════╗
+║                    COMANDOS DISPONIBLES                       ║
+╚════════════════════════════════════════════════════════════════╝
+• help           → Muestra esta lista de comandos
+• status         → Estado general del sistema
+• threats        → Información de amenazas detectadas
+• agents         → Lista de agentes activos
+• network        → Estado de la red
+• shield         → Estado del escudo de perímetro
+• logs [N]       → Últimos N registros (default: 5)
+• clear          → Limpia la terminal
+• scan           → Escaneo rápido de seguridad
+• uptime         → Tiempo de actividad del sistema`,
+        en: `
+╔════════════════════════════════════════════════════════════════╗
+║                    AVAILABLE COMMANDS                         ║
+╚════════════════════════════════════════════════════════════════╝
+• help           → Shows this command list
+• status         → System general status
+• threats        → Detected threats information
+• agents         → List of active agents
+• network        → Network status
+• shield         → Perimeter shield status
+• logs [N]       → Last N records (default: 5)
+• clear          → Clears the terminal
+• scan           → Quick security scan
+• uptime         → System uptime`
+    },
+    status: {
+        es: `STATUS REPORT — SISTEMA SOC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Servidor Principal: ONLINE
+• Base de Datos: ONLINE
+• Conexión VPN: SECURE
+• Firewall: ACTIVE
+• IDS/IPS: MONITORING
+• Backup: SYNC (99.9%)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ TODOS LOS SERVICIOS OPERACIONALES`,
+        en: `STATUS REPORT — SOC SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Main Server: ONLINE
+• Database: ONLINE
+• VPN Connection: SECURE
+• Firewall: ACTIVE
+• IDS/IPS: MONITORING
+• Backup: SYNC (99.9%)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ ALL SERVICES OPERATIONAL`
+    },
+    threats: {
+        es: `REPORTE DE AMENAZAS DETECTADAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[HIGH] SQL Injection attempt → 192.168.1.105:8080
+[MEDIUM] Port Scan detected → 10.0.0.15
+[LOW] Suspicious DNS queries → Internal network
+[INFO] Malware signature match → Quarantine: db_clean_v3.exe
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total: 4 eventos registrados
+Estado: BAJO CONTROL`,
+        en: `DETECTED THREATS REPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[HIGH] SQL Injection attempt → 192.168.1.105:8080
+[MEDIUM] Port Scan detected → 10.0.0.15
+[LOW] Suspicious DNS queries → Internal network
+[INFO] Malware signature match → Quarantine: db_clean_v3.exe
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total: 4 events recorded
+Status: UNDER CONTROL`
+    },
+    agents: {
+        es: `AGENTES SOC ACTIVOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ID        NOMBRE              ESTADO      ÚLTIMA_ACTIVIDAD
+──────────────────────────────────────────────────────────
+AGENT-001 Carlos García       ONLINE      2 segundos atrás
+AGENT-002 María López         ONLINE      35 segundos atrás
+AGENT-003 Juan Rodríguez      OFFLINE     5 minutos atrás
+AGENT-004 Ana Martínez        ONLINE      1 segundo atrás
+AGENT-005 Pedro Sánchez       ONLINE      22 segundos atrás
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Agentes Online: 4/5`,
+        en: `ACTIVE SOC AGENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ID        NAME               STATUS      LAST_ACTIVITY
+──────────────────────────────────────────────────────────
+AGENT-001 Carlos García       ONLINE      2 seconds ago
+AGENT-002 María López         ONLINE      35 seconds ago
+AGENT-003 Juan Rodríguez      OFFLINE     5 minutes ago
+AGENT-004 Ana Martínez        ONLINE      1 second ago
+AGENT-005 Pedro Sánchez       ONLINE      22 seconds ago
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Online Agents: 4/5`,
+    },
+    network: {
+        es: `ESTADO DE RED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Interfaz: eth0
+IP Local: 192.168.1.100
+Gateway: 192.168.1.1
+DNS: 8.8.8.8 | 8.8.4.4
+Latencia: 12ms
+Ancho de banda: 950 Mbps / 1000 Mbps
+Paquetes pérdidos: 0.02%
+Estado: ESTABLE ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+        en: `NETWORK STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Interface: eth0
+Local IP: 192.168.1.100
+Gateway: 192.168.1.1
+DNS: 8.8.8.8 | 8.8.4.4
+Latency: 12ms
+Bandwidth: 950 Mbps / 1000 Mbps
+Packet Loss: 0.02%
+Status: STABLE ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+    },
+    shield: {
+        es: `ESCUDO DE PERÍMETRO — ESTADO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Modo: MÁXIMA SEGURIDAD
+Firewall: ACTIVO ✓
+Detección de Intrusiones: ACTIVA ✓
+Prevención de Intrusiones: ACTIVA ✓
+Análisis de Comportamiento: ACTIVO ✓
+Protección DDoS: ACTIVA ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Última actualización de firmas: Hace 2 horas
+Amenazas bloqueadas hoy: 127`,
+        en: `PERIMETER SHIELD — STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Mode: MAXIMUM SECURITY
+Firewall: ACTIVE ✓
+Intrusion Detection: ACTIVE ✓
+Intrusion Prevention: ACTIVE ✓
+Behavior Analysis: ACTIVE ✓
+DDoS Protection: ACTIVE ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Last signature update: 2 hours ago
+Threats blocked today: 127`
+    },
+    scan: {
+        es: `INICIANDO ESCANEO DE SEGURIDAD...
+╔════════════════════════════════════════════════════════════════╗
+Escaneo de puertos: 65535 puertos analizados
+[████████████████████████████████████████] 100% - Completado ✓
+Escaneo de malware: Base de datos: 2.1M firmas
+[██████████████████████████████████████���█] 100% - Limpio ✓
+Análisis de vulnerabilidades: 342 módulos
+[████████████████████████████████████████] 100% - Sin críticas ✓
+Verificación de integridad: 150K archivos
+[████████████████████████████████████████] 100% - Válidos ✓
+╚════════════════════════════════════════════════════════════════╝
+RESULTADO: SISTEMA SEGURO - Sin amenazas detectadas`,
+        en: `INITIATING SECURITY SCAN...
+╔════════════════════════════════════════════════════════════════╗
+Port Scan: 65535 ports analyzed
+[████████████████████████████████████████] 100% - Completed ✓
+Malware Scan: Database: 2.1M signatures
+[████████████████████████████████████████] 100% - Clean ✓
+Vulnerability Analysis: 342 modules
+[████████████████████████████████████████] 100% - No critical ✓
+Integrity Verification: 150K files
+[████████████████████████████████████████] 100% - Valid ✓
+╚════════════════════════════════════════════════════════════════╝
+RESULT: SYSTEM SECURE - No threats detected`
+    },
+    uptime: {
+        es: `ESTADÍSTICAS DE ACTIVIDAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Tiempo de ejecución: 342 días, 15 horas, 23 minutos
+Arranques totales: 28
+Última reinicialización: 342 días atrás
+Disponibilidad: 99.98%
+MTBF (Mean Time Between Failures): 2848 horas
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ SISTEMA ULTRA ESTABLE`,
+        en: `UPTIME STATISTICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Execution time: 342 days, 15 hours, 23 minutes
+Total boots: 28
+Last restart: 342 days ago
+Availability: 99.98%
+MTBF (Mean Time Between Failures): 2848 hours
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ ULTRA STABLE SYSTEM`
+    }
+};
 
 document.addEventListener("DOMContentLoaded", function() {
     
-    // CARGA VISUAL A LOS 3 SEGS
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         const login = document.getElementById('login-screen');
@@ -78,7 +272,6 @@ document.addEventListener("DOMContentLoaded", function() {
         if(login) login.classList.remove('hidden');
     }, 3000);
 
-    // CONFIG INICIAL
     const theme = localStorage.getItem('theme') || 'green';
     const lang = localStorage.getItem('lang') || 'es';
     
@@ -88,13 +281,11 @@ document.addEventListener("DOMContentLoaded", function() {
     const langSelect = document.getElementById('lang-toggle');
     if(langSelect) langSelect.value = lang;
 
-    // RELOJ
     setInterval(() => {
         const clock = document.getElementById('current-time');
         if(clock) clock.innerText = new Date().toLocaleTimeString();
     }, 1000);
 
-    // LOGIN
     const btnLogin = document.getElementById('btn-login');
     if(btnLogin) {
         btnLogin.onclick = function() {
@@ -106,6 +297,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 
                 loadLogs();
                 loadEvents();
+                setupTerminal();
                 setTimeout(() => init3D(localStorage.getItem('theme') || 'green'), 500);
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
@@ -113,7 +305,6 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     }
 
-    // TABS NAVEGACIÓN
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -123,19 +314,15 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     });
 
-    // CAMBIAR IDIOMA EN VIVO
     if(langSelect) {
         langSelect.onchange = function(e) {
             applyLanguage(e.target.value);
         };
     }
 
-    // CAMBIAR COLOR EN VIVO - CORREGIDO: Ahora busca .theme-card en lugar de .theme-opt
     document.querySelectorAll('.theme-card').forEach(opt => {
         opt.onclick = function() {
-            // Remover clase active de todos
             document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
-            // Añadir clase active al seleccionado
             this.classList.add('active');
             applyTheme(this.dataset.t);
         };
@@ -159,12 +346,11 @@ document.addEventListener("DOMContentLoaded", function() {
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem('theme', t);
         
-        // Si la casa 3D está cargada, le cambiamos el color instantáneamente a sus partes
         if(globalMesh3D) {
-            let hexColor = 0x00ff99; // verde
+            let hexColor = 0x00ff99;
             if(t === 'cyan') hexColor = 0x00e5ff;
             if(t === 'magenta') hexColor = 0xff00ff;
-            if(t === 'orange') hexColor = 0xff6600; // CORREGIDO: Añadido color orange
+            if(t === 'orange') hexColor = 0xff6600;
             
             globalMesh3D.children.forEach(child => {
                 child.material.color.setHex(hexColor);
@@ -189,11 +375,115 @@ document.addEventListener("DOMContentLoaded", function() {
         feed.innerHTML = `<div class="event-card" style="border-left: 3px solid var(--neon); padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05);"><strong>AUTH_OK</strong><br><small>Acceso de agente validado</small><br><span style="font-size:9px; color: var(--muted);">hace 2 min</span></div>`;
     }
 
+    // --- SETUP DEL TERMINAL INTERACTIVO ---
+    function setupTerminal() {
+        const terminalBody = document.getElementById('terminal-log');
+        const terminalInputRow = document.querySelector('.terminal-input-row');
+        
+        if(!terminalBody || !terminalInputRow) return;
+
+        terminalInputRow.addEventListener('click', () => {
+            terminalInputRow.focus();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            // Solo si estamos en la pestaña de terminal
+            if(!document.getElementById('tab-terminal').classList.contains('active')) return;
+
+            const char = e.key;
+            
+            if(e.key === 'Enter') {
+                e.preventDefault();
+                executeCommand(terminalInput);
+                terminalInput = "";
+                updateTerminalDisplay();
+            } else if(e.key === 'Backspace') {
+                e.preventDefault();
+                terminalInput = terminalInput.slice(0, -1);
+                updateTerminalDisplay();
+            } else if(e.key === ' ' || (char.length === 1 && !e.ctrlKey && !e.metaKey)) {
+                e.preventDefault();
+                terminalInput += char;
+                updateTerminalDisplay();
+            }
+        });
+
+        function updateTerminalDisplay() {
+            const promptEl = terminalInputRow.querySelector('.prompt');
+            const cursorEl = terminalInputRow.querySelector('.cursor-blink');
+            
+            if(promptEl) {
+                terminalInputRow.innerHTML = `<span class="prompt">soc@hub:~$</span><span style="color: var(--neon); margin: 0 4px;">${terminalInput}</span><span class="cursor-blink">█</span>`;
+            }
+        }
+
+        function executeCommand(cmd) {
+            const trimmedCmd = cmd.trim().toLowerCase();
+            
+            // Mostrar el comando ejecutado
+            terminalBody.innerHTML += `<div class="log-line">[${new Date().toLocaleTimeString()}] soc@hub:~$ ${cmd}</div>`;
+            
+            if(trimmedCmd === 'clear') {
+                terminalBody.innerHTML = '';
+            } else if(trimmedCmd === '') {
+                // Si está vacío, solo mostrar el prompt
+                terminalBody.innerHTML += `<div class="log-line sys"></div>`;
+            } else {
+                const lang = localStorage.getItem('lang') || 'es';
+                const output = getCommandOutput(trimmedCmd, lang);
+                
+                output.split('\n').forEach(line => {
+                    if(line.trim()) {
+                        const lineClass = line.includes('[HIGH]') ? 'err' : 
+                                        line.includes('[MEDIUM]') ? 'warn' : 
+                                        line.includes('[LOW]') || line.includes('[INFO]') ? 'info' : 'sys';
+                        terminalBody.innerHTML += `<div class="log-line ${lineClass}">${line}</div>`;
+                    }
+                });
+            }
+            
+            // Scroll al final
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+        }
+
+        function getCommandOutput(cmd, lang) {
+            const parts = cmd.split(' ');
+            const mainCmd = parts[0];
+
+            if(terminalCommands[mainCmd]) {
+                return terminalCommands[mainCmd][lang] || terminalCommands[mainCmd]['es'];
+            } else if(mainCmd === 'logs') {
+                const num = parts[1] ? parseInt(parts[1]) : 5;
+                return generateRandomLogs(num, lang);
+            } else {
+                return lang === 'es' ? 
+                    `⚠ Comando no reconocido: "${mainCmd}"\nEscribe "help" para ver los comandos disponibles.` :
+                    `⚠ Command not recognized: "${mainCmd}"\nType "help" to see available commands.`;
+            }
+        }
+
+        function generateRandomLogs(num, lang) {
+            const logTypes = [
+                { type: '[INFO]', text: lang === 'es' ? 'Conexión establecida' : 'Connection established' },
+                { type: '[WARN]', text: lang === 'es' ? 'Actividad sospechosa detectada' : 'Suspicious activity detected' },
+                { type: '[ERR]', text: lang === 'es' ? 'Fallo de conexión' : 'Connection failed' },
+                { type: '[OK]', text: lang === 'es' ? 'Operación completada' : 'Operation completed' }
+            ];
+            
+            let result = '';
+            for(let i = 0; i < num; i++) {
+                const log = logTypes[Math.floor(Math.random() * logTypes.length)];
+                const time = new Date(Date.now() - Math.random() * 3600000).toLocaleTimeString();
+                result += `[${time}] ${log.type} ${log.text}\n`;
+            }
+            return result;
+        }
+    }
+
     function init3D(currentTheme) {
         const container = document.getElementById('canvas-3d');
         if(!container || typeof THREE === 'undefined') return;
         
-        // Limpiamos por si se ejecuta dos veces
         container.innerHTML = ''; 
 
         try {
@@ -206,35 +496,28 @@ document.addEventListener("DOMContentLoaded", function() {
             let hexColor = 0x00ff99;
             if(currentTheme === 'cyan') hexColor = 0x00e5ff;
             if(currentTheme === 'magenta') hexColor = 0xff00ff;
-            if(currentTheme === 'orange') hexColor = 0xff6600; // CORREGIDO: Añadido color orange
+            if(currentTheme === 'orange') hexColor = 0xff6600;
             
             const material = new THREE.MeshBasicMaterial({ color: hexColor, wireframe: true });
             
-            // --- CONSTRUCCIÓN DE LA CASA 3D ---
             globalMesh3D = new THREE.Group();
 
-            // 1. Base de la casa (Cubo)
             const baseGeo = new THREE.BoxGeometry(1.5, 1.2, 1.5);
             const base = new THREE.Mesh(baseGeo, material);
-            base.position.y = -0.6; // Bajamos la base un poco
+            base.position.y = -0.6;
 
-            // 2. Techo de la casa (Pirámide)
             const roofGeo = new THREE.ConeGeometry(1.2, 1, 4);
             const roof = new THREE.Mesh(roofGeo, material);
-            roof.position.y = 0.5; // Subimos el techo
-            roof.rotation.y = Math.PI / 4; // Giramos 45º para alinear las esquinas con la base
+            roof.position.y = 0.5;
+            roof.rotation.y = Math.PI / 4;
 
-            // Juntamos las piezas
             globalMesh3D.add(base);
             globalMesh3D.add(roof);
             
             scene.add(globalMesh3D);
             camera.position.z = 3.5;
-            camera.position.y = 0.5; // Miramos la casa un poco desde arriba
+            camera.position.y = 0.5;
             
-            // --- LÓGICA DE INTERACCIÓN (ROTACIÓN MANUAL) ---
-            
-            // Ratón (PC)
             renderer.domElement.addEventListener('mousedown', (e) => { isDragging = true; });
             renderer.domElement.addEventListener('mousemove', (e) => {
                 if (isDragging && globalMesh3D) {
@@ -247,7 +530,6 @@ document.addEventListener("DOMContentLoaded", function() {
             });
             window.addEventListener('mouseup', () => { isDragging = false; });
 
-            // Táctil (Móvil)
             renderer.domElement.addEventListener('touchstart', (e) => {
                 isDragging = true;
                 previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -263,11 +545,10 @@ document.addEventListener("DOMContentLoaded", function() {
             });
             window.addEventListener('touchend', () => { isDragging = false; });
 
-            // Animación continua suave si no estamos arrastrando
             const animate = () => {
                 requestAnimationFrame(animate);
                 if(globalMesh3D && !isDragging) {
-                    globalMesh3D.rotation.y += 0.005; // Gira lentamente sola
+                    globalMesh3D.rotation.y += 0.005;
                 }
                 renderer.render(scene, camera);
             };
