@@ -2,7 +2,7 @@
   "name": "Uniqality Hub SOC",
   "short_name": "Uniqality",
   "description": "Security Operations Center - Panel de Control SOC",
-  "start_url": "/uniqality-hub/",
+  "start_url": "MarcosGuerreroMateos/uniqality-hub/",
   "scope": "/uniqality-hub/",
   "display": "standalone",
   "orientation": "portrait-primary",
