@@ -68,6 +68,7 @@ let globalMesh3D = null;
 let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
 let terminalInput = ""; // Para almacenar lo que escribe el usuario
+let isTerminalActive = false;
 
 // COMANDOS DEL TERMINAL SIMULADOS
 const terminalCommands = {
@@ -75,7 +76,7 @@ const terminalCommands = {
         es: `
 ╔════════════════════════════════════════════════════════════════╗
 ║                    COMANDOS DISPONIBLES                       ║
-╚════════════════════════════════════════════════════════════════╝
+╚═════════════════════════════════════════════���══════════════════╝
 • help           → Muestra esta lista de comandos
 • status         → Estado general del sistema
 • threats        → Información de amenazas detectadas
@@ -221,7 +222,7 @@ Threats blocked today: 127`
 Escaneo de puertos: 65535 puertos analizados
 [████████████████████████████████████████] 100% - Completado ✓
 Escaneo de malware: Base de datos: 2.1M firmas
-[██████████████████████████████████████���█] 100% - Limpio ✓
+[████████████████████████████████████████] 100% - Limpio ✓
 Análisis de vulnerabilidades: 342 módulos
 [████████████████████████████████████████] 100% - Sin críticas ✓
 Verificación de integridad: 150K archivos
@@ -331,8 +332,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnLogout = document.getElementById('btn-logout');
     if(btnLogout) btnLogout.onclick = () => location.reload();
 
-    // --- FUNCIONES DE SOPORTE ---
-    
     function applyLanguage(l) {
         localStorage.setItem('lang', l);
         document.documentElement.setAttribute('lang', l);
@@ -378,20 +377,25 @@ document.addEventListener("DOMContentLoaded", function() {
     // --- SETUP DEL TERMINAL INTERACTIVO ---
     function setupTerminal() {
         const terminalBody = document.getElementById('terminal-log');
-        const terminalInputRow = document.querySelector('.terminal-input-row');
+        const terminalContainer = document.querySelector('.terminal-box');
         
-        if(!terminalBody || !terminalInputRow) return;
+        if(!terminalBody || !terminalContainer) return;
 
-        terminalInputRow.addEventListener('click', () => {
-            terminalInputRow.focus();
+        // Hacer que el contenedor sea focusable
+        terminalContainer.addEventListener('click', () => {
+            terminalContainer.focus();
+            isTerminalActive = true;
         });
 
-        document.addEventListener('keydown', (e) => {
-            // Solo si estamos en la pestaña de terminal
-            if(!document.getElementById('tab-terminal').classList.contains('active')) return;
+        terminalContainer.addEventListener('blur', () => {
+            isTerminalActive = false;
+        });
 
-            const char = e.key;
-            
+        // Listener global para teclado
+        document.addEventListener('keydown', (e) => {
+            // Solo si la terminal está activa
+            if(!isTerminalActive) return;
+
             if(e.key === 'Enter') {
                 e.preventDefault();
                 executeCommand(terminalInput);
@@ -401,24 +405,25 @@ document.addEventListener("DOMContentLoaded", function() {
                 e.preventDefault();
                 terminalInput = terminalInput.slice(0, -1);
                 updateTerminalDisplay();
-            } else if(e.key === ' ' || (char.length === 1 && !e.ctrlKey && !e.metaKey)) {
+            } else if(e.key === 'Control' || e.key === 'Meta' || e.key === 'Alt' || e.key === 'Shift') {
+                return; // Ignorar teclas modificadoras
+            } else if(e.key.length === 1) {
                 e.preventDefault();
-                terminalInput += char;
+                terminalInput += e.key;
                 updateTerminalDisplay();
             }
         });
 
         function updateTerminalDisplay() {
-            const promptEl = terminalInputRow.querySelector('.prompt');
-            const cursorEl = terminalInputRow.querySelector('.cursor-blink');
-            
-            if(promptEl) {
-                terminalInputRow.innerHTML = `<span class="prompt">soc@hub:~$</span><span style="color: var(--neon); margin: 0 4px;">${terminalInput}</span><span class="cursor-blink">█</span>`;
+            const inputRow = document.querySelector('.terminal-input-row');
+            if(inputRow) {
+                inputRow.innerHTML = `<span class="prompt">soc@hub:~$</span><span style="color: var(--neon); margin: 0 4px;">${terminalInput}</span><span class="cursor-blink">█</span>`;
             }
         }
 
         function executeCommand(cmd) {
             const trimmedCmd = cmd.trim().toLowerCase();
+            const inputRow = document.querySelector('.terminal-input-row');
             
             // Mostrar el comando ejecutado
             terminalBody.innerHTML += `<div class="log-line">[${new Date().toLocaleTimeString()}] soc@hub:~$ ${cmd}</div>`;
@@ -426,7 +431,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if(trimmedCmd === 'clear') {
                 terminalBody.innerHTML = '';
             } else if(trimmedCmd === '') {
-                // Si está vacío, solo mostrar el prompt
+                // Si está vacío, solo mostrar nueva línea
                 terminalBody.innerHTML += `<div class="log-line sys"></div>`;
             } else {
                 const lang = localStorage.getItem('lang') || 'es';
@@ -437,13 +442,18 @@ document.addEventListener("DOMContentLoaded", function() {
                         const lineClass = line.includes('[HIGH]') ? 'err' : 
                                         line.includes('[MEDIUM]') ? 'warn' : 
                                         line.includes('[LOW]') || line.includes('[INFO]') ? 'info' : 'sys';
-                        terminalBody.innerHTML += `<div class="log-line ${lineClass}">${line}</div>`;
+                        terminalBody.innerHTML += `<div class="log-line ${lineClass}">${escapeHtml(line)}</div>`;
                     }
                 });
             }
             
             // Scroll al final
             terminalBody.scrollTop = terminalBody.scrollHeight;
+            
+            // Restaurar el prompt
+            if(inputRow) {
+                inputRow.innerHTML = `<span class="prompt">soc@hub:~$</span><span class="cursor-blink">█</span>`;
+            }
         }
 
         function getCommandOutput(cmd, lang) {
@@ -478,6 +488,17 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             return result;
         }
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
     }
 
     function init3D(currentTheme) {
