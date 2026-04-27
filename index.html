@@ -32,7 +32,7 @@
                 <div class="progress-fill"></div>
                 <div class="progress-glow"></div>
             </div>
-            <p class="loader-text" id="splash-msg">// INICIALIZANDO PROTOCOLOS SOC...</p>
+            <p class="loader-text" id="splash-msg" data-i18n="loading">// INICIALIZANDO PROTOCOLOS SOC...</p>
             <div class="splash-status">
                 <span class="dot active"></span>
                 <span class="dot"></span>
@@ -52,8 +52,8 @@
                     <div class="ll-inner">U</div>
                 </div>
                 <div class="login-header">
-                    <h2>ACCESO RESTRINGIDO</h2>
-                    <p>// IDENTIFICACIÓN DE AGENTE SOC</p>
+                    <h2 data-i18n="auth_title">ACCESO RESTRINGIDO</h2>
+                    <p data-i18n="auth_sub">// IDENTIFICACIÓN DE AGENTE SOC</p>
                 </div>
                 <div class="login-form">
                     <div class="input-field">
@@ -71,10 +71,10 @@
                         </div>
                     </div>
                     <button class="login-btn" id="btn-login">
-                        <span class="btn-text">VALIDAR CREDENCIALES</span>
+                        <span class="btn-text" data-i18n="login_btn">VALIDAR CREDENCIALES</span>
                         <span class="btn-arrow">→</span>
                     </button>
-                    <p id="login-error" class="error-msg hidden">⚠ ERROR: CREDENCIALES NO VÁLIDAS</p>
+                    <p id="login-error" class="error-msg hidden" data-i18n="login_err">⚠ ERROR: CREDENCIALES NO VÁLIDAS</p>
                     <p class="login-hint">Tip: cualquier usuario/contraseña funciona</p>
                 </div>
             </div>
@@ -91,7 +91,7 @@
         <header class="top-bar">
             <div class="tb-left">
                 <div class="nav-logo-mini">U</div>
-                <span class="status-tag blinking">● SISTEMA_ACTIVO</span>
+                <span class="status-tag blinking" data-i18n="sys_active">● SISTEMA_ACTIVO</span>
             </div>
             <div class="tb-right">
                 <span id="current-time">00:00:00</span>
@@ -105,7 +105,7 @@
             <!-- DASHBOARD -->
             <section id="tab-dashboard" class="tab-content active">
                 <div class="section-title">
-                    <span class="sec-icon">⊞</span> PANEL_CONTROL
+                    <span class="sec-icon">⊞</span> <span data-i18n="panel">PANEL_CONTROL</span>
                     <span class="sec-tag">LIVE</span>
                 </div>
                 <div class="dashboard-grid">
@@ -119,7 +119,7 @@
                     </div>
                     <div class="card events-card">
                         <div class="card-header">
-                            <span>EVENTOS_RECIENTES</span>
+                            <span data-i18n="recent_events">EVENTOS_RECIENTES</span>
                             <span class="card-badge pulse">EN VIVO</span>
                         </div>
                         <div id="event-feed" class="feed"></div>
@@ -151,7 +151,7 @@
             <!-- CÁMARAS -->
             <section id="tab-cameras" class="tab-content">
                 <div class="section-title">
-                    <span class="sec-icon">◎</span> VIGILANCIA_CÁMARAS
+                    <span class="sec-icon">◎</span> <span data-i18n="cameras">VIGILANCIA_CÁMARAS</span>
                     <span class="sec-tag">4 CAM</span>
                 </div>
                 <div class="cam-grid">
@@ -187,7 +187,7 @@
                         <div class="cam-label red">✕ CAM_04_ERROR</div>
                         <div class="offline-content">
                             <div class="offline-icon">!</div>
-                            <div class="offline-text">SEÑAL_PERDIDA</div>
+                            <div class="offline-text" data-i18n="signal_lost">SEÑAL_PERDIDA</div>
                         </div>
                         <div class="offline-mask"></div>
                     </div>
@@ -197,7 +197,7 @@
             <!-- TERMINAL -->
             <section id="tab-terminal" class="tab-content">
                 <div class="section-title">
-                    <span class="sec-icon">⌨</span> TERMINAL_SOC
+                    <span class="sec-icon">⌨</span> <span data-i18n="terminal">TERMINAL_SOC</span>
                     <span class="sec-tag">ROOT</span>
                 </div>
                 <div class="terminal-box">
@@ -218,15 +218,15 @@
             <!-- AJUSTES -->
             <section id="tab-settings" class="tab-content">
                 <div class="section-title">
-                    <span class="sec-icon">⚙</span> CONFIGURACIÓN
+                    <span class="sec-icon">⚙</span> <span data-i18n="settings">CONFIGURACIÓN</span>
                 </div>
                 <div class="settings-pane">
                     <div class="settings-section">
-                        <div class="settings-label">IDIOMA DEL SISTEMA</div>
+                        <div class="settings-label" data-i18n="lang_system">IDIOMA DEL SISTEMA</div>
                         <div class="setting-row">
                             <div class="setting-desc">
-                                <span>LANGUAGE</span>
-                                <small>Interfaz del panel SOC</small>
+                                <span data-i18n="language">LANGUAGE</span>
+                                <small data-i18n="lang_desc">Interfaz del panel SOC</small>
                             </div>
                             <select id="lang-toggle">
                                 <option value="es">Español</option>
@@ -235,36 +235,36 @@
                         </div>
                     </div>
                     <div class="settings-section">
-                        <div class="settings-label">TEMA DE NEÓN</div>
+                        <div class="settings-label" data-i18n="theme">TEMA DE NEÓN</div>
                         <div class="theme-grid">
                             <div class="theme-card active" data-t="green">
                                 <div class="tc-swatch" style="background:#00ff99"></div>
-                                <span>VERDE</span>
+                                <span data-i18n="green_theme">VERDE</span>
                             </div>
                             <div class="theme-card" data-t="cyan">
                                 <div class="tc-swatch" style="background:#00e5ff"></div>
-                                <span>CIAN</span>
+                                <span data-i18n="cyan_theme">CIAN</span>
                             </div>
                             <div class="theme-card" data-t="magenta">
                                 <div class="tc-swatch" style="background:#ff00ff"></div>
-                                <span>MAGENTA</span>
+                                <span data-i18n="magenta_theme">MAGENTA</span>
                             </div>
                             <div class="theme-card" data-t="orange">
                                 <div class="tc-swatch" style="background:#ff6600"></div>
-                                <span>NARANJA</span>
+                                <span data-i18n="orange_theme">NARANJA</span>
                             </div>
                         </div>
                     </div>
                     <div class="settings-section">
-                        <div class="settings-label">SESIÓN ACTIVA</div>
+                        <div class="settings-label" data-i18n="session">SESIÓN ACTIVA</div>
                         <div class="session-info">
-                            <div class="si-row"><span>AGENTE</span><span>AGENTE_SOC_01</span></div>
-                            <div class="si-row"><span>NIVEL</span><span class="green">ADMIN</span></div>
-                            <div class="si-row"><span>UPTIME</span><span id="session-time">00:00:00</span></div>
+                            <div class="si-row"><span data-i18n="agent">AGENTE</span><span>AGENTE_SOC_01</span></div>
+                            <div class="si-row"><span data-i18n="level">NIVEL</span><span class="green">ADMIN</span></div>
+                            <div class="si-row"><span data-i18n="uptime">UPTIME</span><span id="session-time">00:00:00</span></div>
                         </div>
                     </div>
                     <button class="logout-btn" id="btn-logout">
-                        <span>⏻</span> DESCONECTAR SESIÓN
+                        <span>⏻</span> <span data-i18n="logout">DESCONECTAR SESIÓN</span>
                     </button>
                 </div>
             </section>
@@ -274,19 +274,19 @@
         <nav class="bottom-nav" id="main-nav">
             <button class="nav-item active" data-tab="dashboard" title="Dashboard">
                 <span class="nav-icon">⊞</span>
-                <span class="nav-label">Panel</span>
+                <span class="nav-label" data-i18n="nav_panel">Panel</span>
             </button>
             <button class="nav-item" data-tab="cameras" title="Cámaras">
                 <span class="nav-icon">◎</span>
-                <span class="nav-label">Cámaras</span>
+                <span class="nav-label" data-i18n="nav_cameras">Cámaras</span>
             </button>
             <button class="nav-item" data-tab="terminal" title="Terminal">
                 <span class="nav-icon">⌨</span>
-                <span class="nav-label">Terminal</span>
+                <span class="nav-label" data-i18n="nav_terminal">Terminal</span>
             </button>
             <button class="nav-item" data-tab="settings" title="Ajustes">
                 <span class="nav-icon">⚙</span>
-                <span class="nav-label">Ajustes</span>
+                <span class="nav-label" data-i18n="nav_settings">Ajustes</span>
             </button>
         </nav>
 
