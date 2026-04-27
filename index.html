@@ -311,35 +311,35 @@
     
     <!-- Script para registrar el Service Worker y PWA -->
     <script>
-        // Registrar el Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then((registration) => {
-                    console.log('✓ Service Worker registrado:', registration);
-                    
-                    // Verificar actualizaciones periódicamente
-                    setInterval(() => {
-                        registration.update();
-                    }, 3600000); // Cada hora
-                    
-                    // Escuchar si hay una nueva versión disponible
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'activated') {
-                                console.log('✓ Nueva versión disponible');
-                                // Mostrar notificación
-                                if (confirm('📢 Nueva versión disponible. ¿Actualizar ahora?')) {
-                                    window.location.reload();
-                                }
-                            }
-                        });
-                    });
-                })
-                .catch((error) => {
-                    console.log('✗ Error al registrar Service Worker:', error);
+// Registrar el Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+        .then((registration) => {
+            console.log('✓ Service Worker registrado:', registration);
+            
+            // Verificar actualizaciones periódicamente
+            setInterval(() => {
+                registration.update();
+            }, 3600000); // Cada hora
+            
+            // Escuchar si hay una nueva versión disponible
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'activated') {
+                        console.log('✓ Nueva versión disponible');
+                        // Mostrar notificación
+                        if (confirm('📢 Nueva versión disponible. ¿Actualizar ahora?')) {
+                            window.location.reload();
+                        }
+                    }
                 });
-        }
+            });
+        })
+        .catch((error) => {
+            console.log('✗ Error al registrar Service Worker:', error);
+        });
+}
         
         // Permitir instalación en iOS y Android
         let deferredPrompt;
