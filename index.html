@@ -2,236 +2,296 @@
 <html lang="es" data-theme="green">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uniqality Hub - SOC Professional</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link rel="stylesheet" href="style.css">
-    
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(r) {
-          for(let i of r) { i.unregister(); console.log("SW Eliminado"); }
-        });
-      }
-    </script>
-</head>
-<body>
-    <div class="cyber-grid"></div>
-
-    <div id="splash-screen" class="full-screen">
-        <div class="splash-content">
-            <img class="main-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMwMEZGOTkiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDwvcGF0aCBkPSJNMTAgMTAgTDkwIDEwIEw4NSA4NSBDODUgODUgNTAgMTAwIDE1IDg1IFogIi8+CiAgICA8cGF0aCBkPSJNNDAgNDAgTDUwIDQwIEw1MCA2MCBDNTAgNjAgNTAgNzAgNDAgNzAgTTU5IDYwIEM1OSA2MCA1OSA3MCA0OSA3MCIvPgogICAgPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI0MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogICAgPGNpcmNsZSBjeD0iNDAiIGN5PSI3MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogICAgPGNpcmNsZSBjeD0iNDkiIGN5PSI3MCIgcj0iMiIgZmlsbD0iIzAwRkY5OSIvPgogIDwvZz4KPC9zdmc+" alt="Logo">
-            <h1 class="company-name">UNIQALITY<span>HUB</span></h1>
-            <div class="loader-bar"><div class="progress-css"></div></div>
-            <p class="loader-text" data-i18n="loading">// INICIALIZANDO PROTOCOLOS SOC...</p>
-        </div>
-    </div>
-
-    <div id="login-screen" class="full-screen hidden">
-        <div class="login-container">
-            <div class="login-header">
-                <h2 data-i18n="auth_title">ACCESO RESTRINGIDO</h2>
-                <p data-i18n="auth_sub">// IDENTIFICACIÓN DE AGENTE</p>
-            </div>
-            <div class="login-form">
-                <div class="input-field">
-                    <label>ID_USER</label>
-                    <input type="text" id="username" placeholder="Ingrese ID">
-                </div>
-                <div class="input-field">
-                    <label>ACCESS_KEY</label>
-                    <input type="password" id="password" placeholder="••••••••">
-                </div>
-                <button class="login-btn" id="btn-login" data-i18n="login_btn">VALIDAR CREDENCIALES</button>
-                <p id="login-error" class="error-msg hidden" data-i18n="login_err">ERROR: CREDENCIALES NO VÁLIDAS</p>
-            </div>
-        </div>
-    </div>
-
-    <main id="main-app" class="hidden">
-        <nav class="side-nav">
-            <div class="nav-logo">U</div>
-            <button class="nav-item active" data-tab="dashboard">⊞</button>
-            <button class="nav-item" data-tab="cameras">◎</button>
-            <button class="nav-item" data-tab="terminal">⌨</button>
-            <button class="nav-item" data-tab="settings">⚙</button>
-        </nav>
-
-        <div class="content-area">
-            <header class="top-bar">
-                <div class="system-info">
-                    <span class="status-tag blinking" data-i18n="sys_active">SISTEMA_ACTIVO</span>
-                    <span id="current-time">00:00:00</span>
-                </div>
-                <div class="user-profile">AGENTE_SOC_01</div>
-            </header>
-
-            <section id="tab-dashboard" class="tab-content active">
-                <div class="dashboard-grid">
-                    <div class="card model-card">
-                        <div id="canvas-3d"></div>
-                        <div class="card-label">NODO_DIGITAL_VIVO</div>
-                    </div>
-                    <div class="card events-card">
-                        <div class="card-header" data-i18n="recent_events">EVENTOS_RECIENTES</div>
-                        <div id="event-feed" class="feed"></div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="tab-cameras" class="tab-content">
-                <div class="cam-grid">
-                    <div class="cam-box"><div class="cam-label">CAM_01_MAIN</div><div class="noise"></div></div>
-                    <div class="cam-box"><div class="cam-label">CAM_02_SERVER</div><div class="noise"></div></div>
-                    <div class="cam-box"><div class="cam-label">CAM_03_BACK</div><div class="noise"></div></div>
-                    <div class="cam-box offline"><div class="cam-label">CAM_04_ERROR</div><div class="offline-mask"></div></div>
-                </div>
-            </section>
-
-            <section id="tab-terminal" class="tab-content">
-                <div class="terminal-box">
-                    <div id="terminal-log"></div>
-                    <div class="cursor">_</div>
-                </div>
-            </section>
-
-            <section id="tab-settings" class="tab-content">
-                <div class="settings-pane">
-                    <h3 data-i18n="settings">CONFIGURACIÓN</h3>
-                    <div class="setting-row">
-                        <label data-i18n="lang">IDIOMA</label>
-                        <select id="lang-toggle">
-                            <option value="es">Español</option>
-                            <option value="en">English</option>
-                        </select>
-                    </div>
-                    <div class="setting-row">
-                        <label data-i18n="theme">TEMA DE NEÓN</label>
-                        <div class="theme-switch">
-                            <span class="theme-opt" data-t="green" style="background:#00ff99"></span>
-                            <span class="theme-opt" data-t="cyan" style="background:#00e5ff"></span>
-                            <span class="theme-opt" data-t="magenta" style="background:#ff00ff"></span>
-                        </div>
-                    </div>
-                    <button class="logout-btn" id="btn-logout" data-i18n="logout">DESCONECTAR</button>
-                </div>
-            </section>
-        </div>
-    </main>
-    <script src="app.js"></script>
-</body>
-</html><!DOCTYPE html>
-<html lang="es" data-theme="green">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uniqality Hub - SOC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Uniqality Hub — SOC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="cyber-grid"></div>
 
+    <!-- Fondo animado -->
+    <div class="cyber-grid" aria-hidden="true"></div>
+    <div class="scan-line" aria-hidden="true"></div>
+
+    <!-- ========== PANTALLA DE CARGA ========== -->
     <div id="splash-screen" class="full-screen">
         <div class="splash-content">
-            <div class="css-logo">U</div>
+            <div class="logo-ring">
+                <div class="logo-inner">U</div>
+                <svg class="logo-svg" viewBox="0 0 100 100">
+                    <circle class="ring-bg" cx="50" cy="50" r="44"/>
+                    <circle class="ring-progress" cx="50" cy="50" r="44"/>
+                </svg>
+            </div>
             <h1 class="company-name">UNIQALITY<span>HUB</span></h1>
-            <div class="loader-bar"><div class="progress-css"></div></div>
-            <p class="loader-text" data-i18n="loading">// INICIALIZANDO PROTOCOLOS SOC...</p>
+            <div class="loader-bar">
+                <div class="progress-fill"></div>
+                <div class="progress-glow"></div>
+            </div>
+            <p class="loader-text" id="splash-msg">// INICIALIZANDO PROTOCOLOS SOC...</p>
+            <div class="splash-status">
+                <span class="dot active"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
         </div>
     </div>
 
+    <!-- ========== PANTALLA DE LOGIN ========== -->
     <div id="login-screen" class="full-screen hidden">
-        <div class="login-container">
-            <div class="login-header">
-                <h2 data-i18n="auth_title">ACCESO RESTRINGIDO</h2>
-                <p data-i18n="auth_sub">// IDENTIFICACIÓN DE AGENTE</p>
+        <div class="login-wrapper">
+            <div class="login-deco left" aria-hidden="true">
+                <div class="deco-line"></div><div class="deco-line"></div><div class="deco-line"></div>
             </div>
-            <div class="login-form">
-                <div class="input-field">
-                    <label>ID_USER</label>
-                    <input type="text" id="username" placeholder="Ingrese ID">
+            <div class="login-container">
+                <div class="login-logo">
+                    <div class="ll-inner">U</div>
                 </div>
-                <div class="input-field">
-                    <label>ACCESS_KEY</label>
-                    <input type="password" id="password" placeholder="••••••••">
+                <div class="login-header">
+                    <h2>ACCESO RESTRINGIDO</h2>
+                    <p>// IDENTIFICACIÓN DE AGENTE SOC</p>
                 </div>
-                <button class="login-btn" id="btn-login" data-i18n="login_btn">VALIDAR CREDENCIALES</button>
-                <p id="login-error" class="error-msg hidden" data-i18n="login_err">ERROR: CREDENCIALES NO VÁLIDAS</p>
-            </div>
-        </div>
-    </div>
-
-    <main id="main-app" class="hidden">
-        <nav class="side-nav">
-            <div class="nav-logo">U</div>
-            <button class="nav-item active" data-tab="dashboard">⊞</button>
-            <button class="nav-item" data-tab="cameras">◎</button>
-            <button class="nav-item" data-tab="terminal">⌨</button>
-            <button class="nav-item" data-tab="settings">⚙</button>
-        </nav>
-
-        <div class="content-area">
-            <header class="top-bar">
-                <div class="system-info">
-                    <span class="status-tag blinking" data-i18n="sys_active">SISTEMA_ACTIVO</span>
-                    <span id="current-time">00:00:00</span>
-                </div>
-                <div class="user-profile">AGENTE_SOC_01</div>
-            </header>
-
-            <section id="tab-dashboard" class="tab-content active">
-                <div class="dashboard-grid">
-                    <div class="card model-card">
-                        <div id="canvas-3d"></div>
-                        <div class="card-label">PERÍMETRO_VIGILADO_3D</div>
-                    </div>
-                    <div class="card events-card">
-                        <div class="card-header" data-i18n="recent_events">EVENTOS_RECIENTES</div>
-                        <div id="event-feed" class="feed"></div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="tab-cameras" class="tab-content">
-                <div class="cam-grid">
-                    <div class="cam-box"><div class="cam-label">CAM_01_MAIN</div><div class="noise"></div></div>
-                    <div class="cam-box"><div class="cam-label">CAM_02_SERVER</div><div class="noise"></div></div>
-                    <div class="cam-box"><div class="cam-label">CAM_03_BACK</div><div class="noise"></div></div>
-                    <div class="cam-box offline"><div class="cam-label">CAM_04_ERROR</div><div class="offline-mask"></div></div>
-                </div>
-            </section>
-
-            <section id="tab-terminal" class="tab-content">
-                <div class="terminal-box">
-                    <div id="terminal-log"></div>
-                    <div class="cursor">_</div>
-                </div>
-            </section>
-
-            <section id="tab-settings" class="tab-content">
-                <div class="settings-pane">
-                    <h3 data-i18n="settings">CONFIGURACIÓN</h3>
-                    <div class="setting-row">
-                        <label data-i18n="lang">IDIOMA</label>
-                        <select id="lang-toggle">
-                            <option value="es">Español</option>
-                            <option value="en">English</option>
-                        </select>
-                    </div>
-                    <div class="setting-row">
-                        <label data-i18n="theme">TEMA DE NEÓN</label>
-                        <div class="theme-switch">
-                            <span class="theme-opt" data-t="green" style="background:#00ff99"></span>
-                            <span class="theme-opt" data-t="cyan" style="background:#00e5ff"></span>
-                            <span class="theme-opt" data-t="magenta" style="background:#ff00ff"></span>
+                <div class="login-form">
+                    <div class="input-field">
+                        <label for="username">&#x25B8; ID_USUARIO</label>
+                        <div class="input-wrap">
+                            <input type="text" id="username" placeholder="agente_001" autocomplete="off" autocapitalize="none">
+                            <span class="input-cursor">|</span>
                         </div>
                     </div>
-                    <button class="logout-btn" id="btn-logout" data-i18n="logout">DESCONECTAR</button>
+                    <div class="input-field">
+                        <label for="password">&#x25B8; CLAVE_ACCESO</label>
+                        <div class="input-wrap">
+                            <input type="password" id="password" placeholder="••••••••" autocomplete="off">
+                            <span class="input-cursor">|</span>
+                        </div>
+                    </div>
+                    <button class="login-btn" id="btn-login">
+                        <span class="btn-text">VALIDAR CREDENCIALES</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                    <p id="login-error" class="error-msg hidden">⚠ ERROR: CREDENCIALES NO VÁLIDAS</p>
+                    <p class="login-hint">Tip: cualquier usuario/contraseña funciona</p>
+                </div>
+            </div>
+            <div class="login-deco right" aria-hidden="true">
+                <div class="deco-line"></div><div class="deco-line"></div><div class="deco-line"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== APP PRINCIPAL ========== -->
+    <main id="main-app" class="hidden">
+
+        <!-- Barra superior -->
+        <header class="top-bar">
+            <div class="tb-left">
+                <div class="nav-logo-mini">U</div>
+                <span class="status-tag blinking">● SISTEMA_ACTIVO</span>
+            </div>
+            <div class="tb-right">
+                <span id="current-time">00:00:00</span>
+                <div class="agent-badge">AGENTE_01</div>
+            </div>
+        </header>
+
+        <!-- Área de contenido (pestañas) -->
+        <div class="content-area">
+
+            <!-- DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content active">
+                <div class="section-title">
+                    <span class="sec-icon">⊞</span> PANEL_CONTROL
+                    <span class="sec-tag">LIVE</span>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="card model-card">
+                        <div class="card-header">
+                            <span>NODO_DIGITAL_3D</span>
+                            <span class="card-badge green">ACTIVO</span>
+                        </div>
+                        <div id="canvas-3d"></div>
+                        <div class="card-footer">Arrastrar para rotar · Toque para interactuar</div>
+                    </div>
+                    <div class="card events-card">
+                        <div class="card-header">
+                            <span>EVENTOS_RECIENTES</span>
+                            <span class="card-badge pulse">EN VIVO</span>
+                        </div>
+                        <div id="event-feed" class="feed"></div>
+                    </div>
+                    <div class="card stats-card">
+                        <div class="card-header"><span>MÉTRICAS_SOC</span></div>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-val" id="stat-threats">0</div>
+                                <div class="stat-label">AMENAZAS</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-val green" id="stat-blocked">0</div>
+                                <div class="stat-label">BLOQUEADAS</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-val yellow" id="stat-warn">0</div>
+                                <div class="stat-label">ALERTAS</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-val" id="stat-uptime">99.9%</div>
+                                <div class="stat-label">UPTIME</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CÁMARAS -->
+            <section id="tab-cameras" class="tab-content">
+                <div class="section-title">
+                    <span class="sec-icon">◎</span> VIGILANCIA_CÁMARAS
+                    <span class="sec-tag">4 CAM</span>
+                </div>
+                <div class="cam-grid">
+                    <div class="cam-box">
+                        <div class="cam-label">◉ CAM_01_MAIN</div>
+                        <div class="cam-overlay">
+                            <div class="cam-corner tl"></div><div class="cam-corner tr"></div>
+                            <div class="cam-corner bl"></div><div class="cam-corner br"></div>
+                            <div class="cam-crosshair"></div>
+                        </div>
+                        <div class="noise"></div>
+                        <div class="cam-timestamp" id="ct1">00:00:00</div>
+                    </div>
+                    <div class="cam-box">
+                        <div class="cam-label">◉ CAM_02_SERVER</div>
+                        <div class="cam-overlay">
+                            <div class="cam-corner tl"></div><div class="cam-corner tr"></div>
+                            <div class="cam-corner bl"></div><div class="cam-corner br"></div>
+                        </div>
+                        <div class="noise noise-2"></div>
+                        <div class="cam-timestamp" id="ct2">00:00:00</div>
+                    </div>
+                    <div class="cam-box">
+                        <div class="cam-label">◉ CAM_03_BACK</div>
+                        <div class="cam-overlay">
+                            <div class="cam-corner tl"></div><div class="cam-corner tr"></div>
+                            <div class="cam-corner bl"></div><div class="cam-corner br"></div>
+                        </div>
+                        <div class="noise noise-3"></div>
+                        <div class="cam-timestamp" id="ct3">00:00:00</div>
+                    </div>
+                    <div class="cam-box offline">
+                        <div class="cam-label red">✕ CAM_04_ERROR</div>
+                        <div class="offline-content">
+                            <div class="offline-icon">!</div>
+                            <div class="offline-text">SEÑAL_PERDIDA</div>
+                        </div>
+                        <div class="offline-mask"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TERMINAL -->
+            <section id="tab-terminal" class="tab-content">
+                <div class="section-title">
+                    <span class="sec-icon">⌨</span> TERMINAL_SOC
+                    <span class="sec-tag">ROOT</span>
+                </div>
+                <div class="terminal-box">
+                    <div class="terminal-header">
+                        <span class="t-dot red"></span>
+                        <span class="t-dot yellow"></span>
+                        <span class="t-dot green"></span>
+                        <span class="t-title">bash — soc@uniqality:~</span>
+                    </div>
+                    <div id="terminal-log" class="terminal-body"></div>
+                    <div class="terminal-input-row">
+                        <span class="prompt">soc@hub:~$</span>
+                        <span class="cursor-blink">█</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AJUSTES -->
+            <section id="tab-settings" class="tab-content">
+                <div class="section-title">
+                    <span class="sec-icon">⚙</span> CONFIGURACIÓN
+                </div>
+                <div class="settings-pane">
+                    <div class="settings-section">
+                        <div class="settings-label">IDIOMA DEL SISTEMA</div>
+                        <div class="setting-row">
+                            <div class="setting-desc">
+                                <span>LANGUAGE</span>
+                                <small>Interfaz del panel SOC</small>
+                            </div>
+                            <select id="lang-toggle">
+                                <option value="es">Español</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <div class="settings-label">TEMA DE NEÓN</div>
+                        <div class="theme-grid">
+                            <div class="theme-card active" data-t="green">
+                                <div class="tc-swatch" style="background:#00ff99"></div>
+                                <span>VERDE</span>
+                            </div>
+                            <div class="theme-card" data-t="cyan">
+                                <div class="tc-swatch" style="background:#00e5ff"></div>
+                                <span>CIAN</span>
+                            </div>
+                            <div class="theme-card" data-t="magenta">
+                                <div class="tc-swatch" style="background:#ff00ff"></div>
+                                <span>MAGENTA</span>
+                            </div>
+                            <div class="theme-card" data-t="orange">
+                                <div class="tc-swatch" style="background:#ff6600"></div>
+                                <span>NARANJA</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <div class="settings-label">SESIÓN ACTIVA</div>
+                        <div class="session-info">
+                            <div class="si-row"><span>AGENTE</span><span>AGENTE_SOC_01</span></div>
+                            <div class="si-row"><span>NIVEL</span><span class="green">ADMIN</span></div>
+                            <div class="si-row"><span>UPTIME</span><span id="session-time">00:00:00</span></div>
+                        </div>
+                    </div>
+                    <button class="logout-btn" id="btn-logout">
+                        <span>⏻</span> DESCONECTAR SESIÓN
+                    </button>
                 </div>
             </section>
         </div>
+
+        <!-- Navegación inferior (móvil) / lateral (PC) -->
+        <nav class="bottom-nav" id="main-nav">
+            <button class="nav-item active" data-tab="dashboard" title="Dashboard">
+                <span class="nav-icon">⊞</span>
+                <span class="nav-label">Panel</span>
+            </button>
+            <button class="nav-item" data-tab="cameras" title="Cámaras">
+                <span class="nav-icon">◎</span>
+                <span class="nav-label">Cámaras</span>
+            </button>
+            <button class="nav-item" data-tab="terminal" title="Terminal">
+                <span class="nav-icon">⌨</span>
+                <span class="nav-label">Terminal</span>
+            </button>
+            <button class="nav-item" data-tab="settings" title="Ajustes">
+                <span class="nav-icon">⚙</span>
+                <span class="nav-label">Ajustes</span>
+            </button>
+        </nav>
+
     </main>
+
     <script src="app.js"></script>
 </body>
 </html>
