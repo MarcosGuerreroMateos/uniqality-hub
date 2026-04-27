@@ -3,15 +3,33 @@ const i18n = {
     es: { 
         loading: "// INICIALIZANDO PROTOCOLOS SOC...",
         auth_title: "ACCESO RESTRINGIDO", 
-        auth_sub: "// IDENTIFICACIÓN DE AGENTE",
+        auth_sub: "// IDENTIFICACIÓN DE AGENTE SOC",
         login_btn: "VALIDAR CREDENCIALES",
         login_err: "ERROR: CREDENCIALES NO VÁLIDAS",
-        sys_active: "SISTEMA_ACTIVO",
+        sys_active: "● SISTEMA_ACTIVO",
         recent_events: "EVENTOS_RECIENTES",
+        panel: "PANEL_CONTROL",
+        cameras: "VIGILANCIA_CÁMARAS",
+        terminal: "TERMINAL_SOC",
         settings: "CONFIGURACIÓN", 
-        lang: "IDIOMA",
+        lang_system: "IDIOMA DEL SISTEMA",
+        language: "LANGUAGE",
+        lang_desc: "Interfaz del panel SOC",
         theme: "TEMA DE NEÓN",
-        logout: "DESCONECTAR"
+        green_theme: "VERDE",
+        cyan_theme: "CIAN",
+        magenta_theme: "MAGENTA",
+        orange_theme: "NARANJA",
+        session: "SESIÓN ACTIVA",
+        agent: "AGENTE",
+        level: "NIVEL",
+        uptime: "UPTIME",
+        logout: "DESCONECTAR SESIÓN",
+        nav_panel: "Panel",
+        nav_cameras: "Cámaras",
+        nav_terminal: "Terminal",
+        nav_settings: "Ajustes",
+        signal_lost: "SEÑAL_PERDIDA"
     },
     en: { 
         loading: "// INITIALIZING SOC PROTOCOLS...",
@@ -19,12 +37,30 @@ const i18n = {
         auth_sub: "// AGENT IDENTIFICATION REQUIRED",
         login_btn: "VALIDATE CREDENTIALS",
         login_err: "ERROR: INVALID CREDENTIALS",
-        sys_active: "SYSTEM_ACTIVE",
+        sys_active: "● SYSTEM_ACTIVE",
         recent_events: "RECENT EVENTS",
+        panel: "CONTROL_PANEL",
+        cameras: "CAMERA_SURVEILLANCE",
+        terminal: "TERMINAL_SOC",
         settings: "SYSTEM SETTINGS", 
-        lang: "LANGUAGE",
+        lang_system: "SYSTEM LANGUAGE",
+        language: "LANGUAGE",
+        lang_desc: "SOC panel interface",
         theme: "NEON THEME",
-        logout: "DISCONNECT"
+        green_theme: "GREEN",
+        cyan_theme: "CYAN",
+        magenta_theme: "MAGENTA",
+        orange_theme: "ORANGE",
+        session: "ACTIVE SESSION",
+        agent: "AGENT",
+        level: "LEVEL",
+        uptime: "UPTIME",
+        logout: "DISCONNECT SESSION",
+        nav_panel: "Panel",
+        nav_cameras: "Cameras",
+        nav_terminal: "Terminal",
+        nav_settings: "Settings",
+        signal_lost: "SIGNAL_LOST"
     }
 };
 
@@ -94,9 +130,13 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     }
 
-    // CAMBIAR COLOR EN VIVO
-    document.querySelectorAll('.theme-opt').forEach(opt => {
+    // CAMBIAR COLOR EN VIVO - CORREGIDO: Ahora busca .theme-card en lugar de .theme-opt
+    document.querySelectorAll('.theme-card').forEach(opt => {
         opt.onclick = function() {
+            // Remover clase active de todos
+            document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
+            // Añadir clase active al seleccionado
+            this.classList.add('active');
             applyTheme(this.dataset.t);
         };
     });
@@ -108,6 +148,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     function applyLanguage(l) {
         localStorage.setItem('lang', l);
+        document.documentElement.setAttribute('lang', l);
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.dataset.i18n;
             if(i18n[l] && i18n[l][key]) el.innerText = i18n[l][key];
@@ -123,6 +164,7 @@ document.addEventListener("DOMContentLoaded", function() {
             let hexColor = 0x00ff99; // verde
             if(t === 'cyan') hexColor = 0x00e5ff;
             if(t === 'magenta') hexColor = 0xff00ff;
+            if(t === 'orange') hexColor = 0xff6600; // CORREGIDO: Añadido color orange
             
             globalMesh3D.children.forEach(child => {
                 child.material.color.setHex(hexColor);
@@ -144,7 +186,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function loadEvents() {
         const feed = document.getElementById('event-feed');
         if(!feed) return;
-        feed.innerHTML = `<div class="event-card" style="border-left: 3px solid var(--neon); padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05);"><strong>AUTH_OK</strong><br><span style="font-size:12px;color:#aaa">Acceso concedido</span></div>`;
+        feed.innerHTML = `<div class="event-card" style="border-left: 3px solid var(--neon); padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05);"><strong>AUTH_OK</strong><br><small>Acceso de agente validado</small><br><span style="font-size:9px; color: var(--muted);">hace 2 min</span></div>`;
     }
 
     function init3D(currentTheme) {
@@ -164,6 +206,7 @@ document.addEventListener("DOMContentLoaded", function() {
             let hexColor = 0x00ff99;
             if(currentTheme === 'cyan') hexColor = 0x00e5ff;
             if(currentTheme === 'magenta') hexColor = 0xff00ff;
+            if(currentTheme === 'orange') hexColor = 0xff6600; // CORREGIDO: Añadido color orange
             
             const material = new THREE.MeshBasicMaterial({ color: hexColor, wireframe: true });
             
