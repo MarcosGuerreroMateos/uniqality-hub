@@ -67,8 +67,8 @@ const i18n = {
 let globalMesh3D = null;
 let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
-let terminalInput = ""; // Para almacenar lo que escribe el usuario
-let isTerminalActive = false;
+let terminalInput = "";
+let isTerminalFocused = false;
 
 // COMANDOS DEL TERMINAL SIMULADOS
 const terminalCommands = {
@@ -76,7 +76,7 @@ const terminalCommands = {
         es: `
 ╔════════════════════════════════════════════════════════════════╗
 ║                    COMANDOS DISPONIBLES                       ║
-╚═════════════════════════════════════════════���══════════════════╝
+╚════════════════════════════════════════════════════════════════╝
 • help           → Muestra esta lista de comandos
 • status         → Estado general del sistema
 • threats        → Información de amenazas detectadas
@@ -218,7 +218,7 @@ Threats blocked today: 127`
     },
     scan: {
         es: `INICIANDO ESCANEO DE SEGURIDAD...
-╔════════════════════════════════════════════════════════════════╗
+╔══════════════════════════════════════════════════════════════��═╗
 Escaneo de puertos: 65535 puertos analizados
 [████████████████████████████████████████] 100% - Completado ✓
 Escaneo de malware: Base de datos: 2.1M firmas
@@ -377,24 +377,27 @@ document.addEventListener("DOMContentLoaded", function() {
     // --- SETUP DEL TERMINAL INTERACTIVO ---
     function setupTerminal() {
         const terminalBody = document.getElementById('terminal-log');
-        const terminalContainer = document.querySelector('.terminal-box');
+        const terminalBox = document.querySelector('.terminal-box');
         
-        if(!terminalBody || !terminalContainer) return;
+        if(!terminalBody || !terminalBox) return;
 
-        // Hacer que el contenedor sea focusable
-        terminalContainer.addEventListener('click', () => {
-            terminalContainer.focus();
-            isTerminalActive = true;
+        // Hacer el terminal focusable
+        terminalBox.setAttribute('tabindex', '0');
+
+        // Cuando el usuario hace click en la terminal
+        terminalBox.addEventListener('click', () => {
+            isTerminalFocused = true;
+            terminalBox.style.outline = 'none';
         });
 
-        terminalContainer.addEventListener('blur', () => {
-            isTerminalActive = false;
+        // Cuando el usuario sale de la terminal
+        terminalBox.addEventListener('blur', () => {
+            isTerminalFocused = false;
         });
 
-        // Listener global para teclado
+        // Listener para cualquier tecla en el documento
         document.addEventListener('keydown', (e) => {
-            // Solo si la terminal está activa
-            if(!isTerminalActive) return;
+            if(!isTerminalFocused) return;
 
             if(e.key === 'Enter') {
                 e.preventDefault();
@@ -405,35 +408,33 @@ document.addEventListener("DOMContentLoaded", function() {
                 e.preventDefault();
                 terminalInput = terminalInput.slice(0, -1);
                 updateTerminalDisplay();
-            } else if(e.key === 'Control' || e.key === 'Meta' || e.key === 'Alt' || e.key === 'Shift') {
-                return; // Ignorar teclas modificadoras
-            } else if(e.key.length === 1) {
-                e.preventDefault();
-                terminalInput += e.key;
-                updateTerminalDisplay();
             }
+        });
+
+        // Listener para caracteres normales
+        document.addEventListener('keypress', (e) => {
+            if(!isTerminalFocused) return;
+            e.preventDefault();
+            terminalInput += e.key;
+            updateTerminalDisplay();
         });
 
         function updateTerminalDisplay() {
             const inputRow = document.querySelector('.terminal-input-row');
             if(inputRow) {
-                inputRow.innerHTML = `<span class="prompt">soc@hub:~$</span><span style="color: var(--neon); margin: 0 4px;">${terminalInput}</span><span class="cursor-blink">█</span>`;
+                inputRow.innerHTML = `<span class="prompt">soc@hub:~$</span><span style="color: var(--neon); margin-left: 4px;">${escapeHtml(terminalInput)}</span><span class="cursor-blink">█</span>`;
             }
         }
 
         function executeCommand(cmd) {
             const trimmedCmd = cmd.trim().toLowerCase();
-            const inputRow = document.querySelector('.terminal-input-row');
             
-            // Mostrar el comando ejecutado
-            terminalBody.innerHTML += `<div class="log-line">[${new Date().toLocaleTimeString()}] soc@hub:~$ ${cmd}</div>`;
+            // Mostrar el comando
+            terminalBody.innerHTML += `<div class="log-line">[${new Date().toLocaleTimeString()}] soc@hub:~$ ${escapeHtml(cmd)}</div>`;
             
             if(trimmedCmd === 'clear') {
                 terminalBody.innerHTML = '';
-            } else if(trimmedCmd === '') {
-                // Si está vacío, solo mostrar nueva línea
-                terminalBody.innerHTML += `<div class="log-line sys"></div>`;
-            } else {
+            } else if(trimmedCmd !== '') {
                 const lang = localStorage.getItem('lang') || 'es';
                 const output = getCommandOutput(trimmedCmd, lang);
                 
@@ -447,13 +448,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
             }
             
-            // Scroll al final
             terminalBody.scrollTop = terminalBody.scrollHeight;
-            
-            // Restaurar el prompt
-            if(inputRow) {
-                inputRow.innerHTML = `<span class="prompt">soc@hub:~$</span><span class="cursor-blink">█</span>`;
-            }
         }
 
         function getCommandOutput(cmd, lang) {
