@@ -1005,4 +1005,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
         } catch(e) { console.error("3D Error:", e); }
     }
+// ===== REGISTRO DEL SERVICE WORKER =====
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/uniqality-hub/sw.js')
+                .then(reg => console.log('✓ Service Worker registrado correctamente:', reg.scope))
+                .catch(err => console.error('⚠ Error al registrar Service Worker:', err));
+        });
+    }
 });
