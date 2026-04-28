@@ -4,355 +4,335 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    
-    <!-- Meta tags para PWA -->
-    <meta name="theme-color" content="#00ff99">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Uniqality Hub">
-    <meta name="description" content="Security Operations Center - Panel de Control SOC">
-    
     <title>Uniqality Hub — SOC</title>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Link al manifest PWA -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Icons PWA -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%2305070a' width='192' height='192'/><text x='50%' y='50%' font-size='100' font-weight='bold' fill='%2300ff99' text-anchor='middle' dominant-baseline='central' font-family='Orbitron'>U</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%2305070a' width='180' height='180' rx='40'/><text x='50%' y='50%' font-size='100' font-weight='bold' fill='%2300ff99' text-anchor='middle' dominant-baseline='central' font-family='Orbitron'>U</text></svg>">
 </head>
 <body>
 
-    <!-- Fondo animado -->
-    <div class="cyber-grid" aria-hidden="true"></div>
-    <div class="scan-line" aria-hidden="true"></div>
+<div class="cyber-grid" aria-hidden="true"></div>
+<div class="scan-line" aria-hidden="true"></div>
 
-    <!-- ========== PANTALLA DE CARGA ========== -->
-    <div id="splash-screen" class="full-screen">
-        <div class="splash-content">
-            <div class="logo-ring">
-                <div class="logo-inner">U</div>
-                <svg class="logo-svg" viewBox="0 0 100 100">
-                    <circle class="ring-bg" cx="50" cy="50" r="44"/>
-                    <circle class="ring-progress" cx="50" cy="50" r="44"/>
-                </svg>
-            </div>
-            <h1 class="company-name">UNIQALITY<span>HUB</span></h1>
-            <div class="loader-bar">
-                <div class="progress-fill"></div>
-                <div class="progress-glow"></div>
-            </div>
-            <p class="loader-text" id="splash-msg" data-i18n="loading">// INICIALIZANDO PROTOCOLOS SOC...</p>
-            <div class="splash-status">
-                <span class="dot active"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-            </div>
+<!-- SPLASH -->
+<div id="splash-screen" class="full-screen">
+    <div class="splash-content">
+        <div class="logo-ring">
+            <div class="logo-inner">U</div>
+            <svg class="logo-svg" viewBox="0 0 100 100">
+                <circle class="ring-bg" cx="50" cy="50" r="44"/>
+                <circle class="ring-progress" cx="50" cy="50" r="44"/>
+            </svg>
+        </div>
+        <h1 class="company-name">UNIQALITY<span>HUB</span></h1>
+        <div class="loader-bar"><div class="progress-fill"></div><div class="progress-glow"></div></div>
+        <p class="loader-text" id="splash-msg">// INICIALIZANDO PROTOCOLOS SOC...</p>
+        <div class="splash-dots">
+            <span class="dot active"></span><span class="dot"></span><span class="dot"></span>
         </div>
     </div>
+</div>
 
-    <!-- ========== PANTALLA DE LOGIN ========== -->
-    <div id="login-screen" class="full-screen hidden">
-        <div class="login-wrapper">
-            <div class="login-deco left" aria-hidden="true">
-                <div class="deco-line"></div><div class="deco-line"></div><div class="deco-line"></div>
+<!-- LOGIN -->
+<div id="login-screen" class="full-screen hidden">
+    <div class="login-wrapper">
+        <div class="login-deco left" aria-hidden="true">
+            <div class="deco-line"></div><div class="deco-line"></div><div class="deco-line"></div>
+        </div>
+        <div class="login-container">
+            <div class="login-logo"><div class="ll-inner">U</div></div>
+            <div class="login-header">
+                <h2>ACCESO RESTRINGIDO</h2>
+                <p>// IDENTIFICACIÓN DE AGENTE SOC</p>
             </div>
-            <div class="login-container">
-                <div class="login-logo">
-                    <div class="ll-inner">U</div>
+            <div class="login-form">
+                <div class="input-field">
+                    <label for="username">▸ ID_USUARIO</label>
+                    <div class="input-wrap"><input type="text" id="username" placeholder="agente_001" autocomplete="off" autocapitalize="none"></div>
                 </div>
-                <div class="login-header">
-                    <h2 data-i18n="auth_title">ACCESO RESTRINGIDO</h2>
-                    <p data-i18n="auth_sub">// IDENTIFICACIÓN DE AGENTE SOC</p>
+                <div class="input-field">
+                    <label for="password">▸ CLAVE_ACCESO</label>
+                    <div class="input-wrap"><input type="password" id="password" placeholder="••••••••" autocomplete="off"></div>
                 </div>
-                <div class="login-form">
-                    <div class="input-field">
-                        <label for="username">&#x25B8; ID_USUARIO</label>
-                        <div class="input-wrap">
-                            <input type="text" id="username" placeholder="agente_001" autocomplete="off" autocapitalize="none">
-                            <span class="input-cursor">|</span>
-                        </div>
-                    </div>
-                    <div class="input-field">
-                        <label for="password">&#x25B8; CLAVE_ACCESO</label>
-                        <div class="input-wrap">
-                            <input type="password" id="password" placeholder="••••••••" autocomplete="off">
-                            <span class="input-cursor">|</span>
-                        </div>
-                    </div>
-                    <button class="login-btn" id="btn-login">
-                        <span class="btn-text" data-i18n="login_btn">VALIDAR CREDENCIALES</span>
-                        <span class="btn-arrow">→</span>
-                    </button>
-                    <p id="login-error" class="error-msg hidden" data-i18n="login_err">⚠ ERROR: CREDENCIALES NO V��LIDAS</p>
-                    <p class="login-hint">Tip: cualquier usuario/contraseña funciona</p>
-                </div>
+                <button class="login-btn" id="btn-login">
+                    <span class="btn-text">VALIDAR CREDENCIALES</span><span class="btn-arrow">→</span>
+                </button>
+                <p id="login-error" class="error-msg hidden">⚠ ERROR: CREDENCIALES NO VÁLIDAS</p>
+                <p class="login-hint">Cualquier usuario/contraseña funciona</p>
             </div>
-            <div class="login-deco right" aria-hidden="true">
-                <div class="deco-line"></div><div class="deco-line"></div><div class="deco-line"></div>
-            </div>
+        </div>
+        <div class="login-deco right" aria-hidden="true">
+            <div class="deco-line"></div><div class="deco-line"></div><div class="deco-line"></div>
         </div>
     </div>
+</div>
 
-    <!-- ========== APP PRINCIPAL ========== -->
-    <main id="main-app" class="hidden">
+<!-- APP -->
+<main id="main-app" class="hidden">
 
-        <!-- Barra superior -->
-        <header class="top-bar">
-            <div class="tb-left">
-                <div class="nav-logo-mini">U</div>
-                <span class="status-tag blinking" data-i18n="sys_active">● SISTEMA_ACTIVO</span>
+    <header class="top-bar">
+        <div class="tb-left">
+            <div class="nav-logo-mini">U</div>
+            <span class="status-tag blinking">● SISTEMA_ACTIVO</span>
+        </div>
+        <div class="tb-right">
+            <span id="current-time">00:00:00</span>
+            <div class="agent-badge">AGENTE_01</div>
+        </div>
+    </header>
+
+    <div class="content-area">
+
+        <!-- DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content active">
+            <div class="section-title"><span class="sec-icon">⊞</span> PANEL_CONTROL<span class="sec-tag">LIVE</span></div>
+            <div class="dashboard-grid">
+                <div class="card model-card">
+                    <div class="card-header"><span>NODO_DIGITAL_3D</span><span class="card-badge green">ACTIVO</span></div>
+                    <div id="canvas-3d"></div>
+                    <div class="card-footer">Arrastrar para rotar</div>
+                </div>
+                <div class="card events-card">
+                    <div class="card-header"><span>EVENTOS_RECIENTES</span><span class="card-badge pulse">EN VIVO</span></div>
+                    <div id="event-feed" class="feed"></div>
+                </div>
+                <div class="card stats-card">
+                    <div class="card-header"><span>MÉTRICAS_SOC</span></div>
+                    <div class="stats-grid">
+                        <div class="stat-item"><div class="stat-val" id="stat-threats">0</div><div class="stat-label">AMENAZAS</div></div>
+                        <div class="stat-item"><div class="stat-val green" id="stat-blocked">0</div><div class="stat-label">BLOQUEADAS</div></div>
+                        <div class="stat-item"><div class="stat-val yellow" id="stat-warn">0</div><div class="stat-label">ALERTAS</div></div>
+                        <div class="stat-item"><div class="stat-val" id="stat-uptime">99.9%</div><div class="stat-label">UPTIME</div></div>
+                    </div>
+                </div>
             </div>
-            <div class="tb-right">
-                <span id="current-time">00:00:00</span>
-                <div class="agent-badge">AGENTE_01</div>
+        </section>
+
+        <!-- CÁMARAS -->
+        <section id="tab-cameras" class="tab-content">
+            <div class="section-title"><span class="sec-icon">◎</span> VIGILANCIA_CÁMARAS<span class="sec-tag">4 CAM</span></div>
+            <div class="cam-grid">
+                <div class="cam-box"><div class="cam-label">◉ CAM_01_MAIN</div><div class="cam-overlay"><div class="cam-corner tl"></div><div class="cam-corner tr"></div><div class="cam-corner bl"></div><div class="cam-corner br"></div></div><div class="noise"></div><div class="cam-timestamp" id="ct1">00:00:00</div></div>
+                <div class="cam-box"><div class="cam-label">◉ CAM_02_SERVER</div><div class="cam-overlay"><div class="cam-corner tl"></div><div class="cam-corner tr"></div><div class="cam-corner bl"></div><div class="cam-corner br"></div></div><div class="noise noise-2"></div><div class="cam-timestamp" id="ct2">00:00:00</div></div>
+                <div class="cam-box"><div class="cam-label">◉ CAM_03_BACK</div><div class="cam-overlay"><div class="cam-corner tl"></div><div class="cam-corner tr"></div><div class="cam-corner bl"></div><div class="cam-corner br"></div></div><div class="noise noise-3"></div><div class="cam-timestamp" id="ct3">00:00:00</div></div>
+                <div class="cam-box offline"><div class="cam-label red">✕ CAM_04_ERROR</div><div class="offline-content"><div class="offline-icon">!</div><div class="offline-text">SEÑAL_PERDIDA</div></div><div class="offline-mask"></div></div>
             </div>
-        </header>
+        </section>
 
-        <!-- Área de contenido (pestañas) -->
-        <div class="content-area">
+        <!-- ESCÁNER 3D -->
+        <section id="tab-scanner" class="tab-content">
+            <div class="section-title"><span class="sec-icon">⬡</span> ESCÁNER_3D_HOGAR<span class="sec-tag" id="scanner-tag">LISTO</span></div>
 
-            <!-- DASHBOARD -->
-            <section id="tab-dashboard" class="tab-content active">
-                <div class="section-title">
-                    <span class="sec-icon">⊞</span> <span data-i18n="panel">PANEL_CONTROL</span>
-                    <span class="sec-tag">LIVE</span>
-                </div>
-                <div class="dashboard-grid">
-                    <div class="card model-card">
-                        <div class="card-header">
-                            <span>NODO_DIGITAL_3D</span>
-                            <span class="card-badge green">ACTIVO</span>
-                        </div>
-                        <div id="canvas-3d"></div>
-                        <div class="card-footer">Arrastrar para rotar · Toque para interactuar</div>
+            <!-- Idle -->
+            <div id="scanner-idle" class="scanner-state">
+                <div class="scanner-hero">
+                    <div class="scanner-icon-big">
+                        <div class="sib-ring r1"></div>
+                        <div class="sib-ring r2"></div>
+                        <div class="sib-ring r3"></div>
+                        <span class="sib-glyph">⬡</span>
                     </div>
-                    <div class="card events-card">
-                        <div class="card-header">
-                            <span data-i18n="recent_events">EVENTOS_RECIENTES</span>
-                            <span class="card-badge pulse">EN VIVO</span>
-                        </div>
-                        <div id="event-feed" class="feed"></div>
+                    <h2 class="scanner-title">ESCÁNER PANORÁMICO 3D</h2>
+                    <p class="scanner-desc">Genera una vista 360° inmersiva de tu hogar usando la cámara y el giroscopio del teléfono. Mueve el dispositivo lentamente por la habitación para capturar todos los ángulos.</p>
+                    <div class="scanner-tips">
+                        <div class="tip-item"><span class="tip-num">01</span><span>Colócate en el centro de la habitación</span></div>
+                        <div class="tip-item"><span class="tip-num">02</span><span>Rota lentamente apuntando a todas las paredes</span></div>
+                        <div class="tip-item"><span class="tip-num">03</span><span>Incluye suelo y techo para mayor cobertura</span></div>
+                        <div class="tip-item"><span class="tip-num">04</span><span>El minimap muestra las zonas capturadas</span></div>
                     </div>
-                    <div class="card stats-card">
-                        <div class="card-header"><span>MÉTRICAS_SOC</span></div>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="stat-val" id="stat-threats">0</div>
-                                <div class="stat-label">AMENAZAS</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-val green" id="stat-blocked">0</div>
-                                <div class="stat-label">BLOQUEADAS</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-val yellow" id="stat-warn">0</div>
-                                <div class="stat-label">ALERTAS</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-val" id="stat-uptime">99.9%</div>
-                                <div class="stat-label">UPTIME</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- CÁMARAS -->
-            <section id="tab-cameras" class="tab-content">
-                <div class="section-title">
-                    <span class="sec-icon">◎</span> <span data-i18n="cameras">VIGILANCIA_CÁMARAS</span>
-                    <span class="sec-tag">4 CAM</span>
-                </div>
-                <div class="cam-grid">
-                    <div class="cam-box">
-                        <div class="cam-label">◉ CAM_01_MAIN</div>
-                        <div class="cam-overlay">
-                            <div class="cam-corner tl"></div><div class="cam-corner tr"></div>
-                            <div class="cam-corner bl"></div><div class="cam-corner br"></div>
-                            <div class="cam-crosshair"></div>
-                        </div>
-                        <div class="noise"></div>
-                        <div class="cam-timestamp" id="ct1">00:00:00</div>
-                    </div>
-                    <div class="cam-box">
-                        <div class="cam-label">◉ CAM_02_SERVER</div>
-                        <div class="cam-overlay">
-                            <div class="cam-corner tl"></div><div class="cam-corner tr"></div>
-                            <div class="cam-corner bl"></div><div class="cam-corner br"></div>
-                        </div>
-                        <div class="noise noise-2"></div>
-                        <div class="cam-timestamp" id="ct2">00:00:00</div>
-                    </div>
-                    <div class="cam-box">
-                        <div class="cam-label">◉ CAM_03_BACK</div>
-                        <div class="cam-overlay">
-                            <div class="cam-corner tl"></div><div class="cam-corner tr"></div>
-                            <div class="cam-corner bl"></div><div class="cam-corner br"></div>
-                        </div>
-                        <div class="noise noise-3"></div>
-                        <div class="cam-timestamp" id="ct3">00:00:00</div>
-                    </div>
-                    <div class="cam-box offline">
-                        <div class="cam-label red">✕ CAM_04_ERROR</div>
-                        <div class="offline-content">
-                            <div class="offline-icon">!</div>
-                            <div class="offline-text" data-i18n="signal_lost">SEÑAL_PERDIDA</div>
-                        </div>
-                        <div class="offline-mask"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TERMINAL -->
-            <section id="tab-terminal" class="tab-content">
-                <div class="section-title">
-                    <span class="sec-icon">⌨</span> <span data-i18n="terminal">TERMINAL_SOC</span>
-                    <span class="sec-tag">ROOT</span>
-                </div>
-                <div class="terminal-box">
-                    <div class="terminal-header">
-                        <span class="t-dot red"></span>
-                        <span class="t-dot yellow"></span>
-                        <span class="t-dot green"></span>
-                        <span class="t-title">bash — soc@uniqality:~</span>
-                    </div>
-                    <div id="terminal-log" class="terminal-body"></div>
-                    <div class="terminal-input-row">
-                        <span class="prompt">soc@hub:~$</span>
-                        <span class="cursor-blink">█</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- AJUSTES -->
-            <section id="tab-settings" class="tab-content">
-                <div class="section-title">
-                    <span class="sec-icon">⚙</span> <span data-i18n="settings">CONFIGURACIÓN</span>
-                </div>
-                <div class="settings-pane">
-                    <div class="settings-section">
-                        <div class="settings-label" data-i18n="lang_system">IDIOMA DEL SISTEMA</div>
-                        <div class="setting-row">
-                            <div class="setting-desc">
-                                <span data-i18n="language">LANGUAGE</span>
-                                <small data-i18n="lang_desc">Interfaz del panel SOC</small>
-                            </div>
-                            <select id="lang-toggle">
-                                <option value="es">Español</option>
-                                <option value="en">English</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <div class="settings-label" data-i18n="theme">TEMA DE NEÓN</div>
-                        <div class="theme-grid">
-                            <div class="theme-card active" data-t="green">
-                                <div class="tc-swatch" style="background:#00ff99"></div>
-                                <span data-i18n="green_theme">VERDE</span>
-                            </div>
-                            <div class="theme-card" data-t="cyan">
-                                <div class="tc-swatch" style="background:#00e5ff"></div>
-                                <span data-i18n="cyan_theme">CIAN</span>
-                            </div>
-                            <div class="theme-card" data-t="magenta">
-                                <div class="tc-swatch" style="background:#ff00ff"></div>
-                                <span data-i18n="magenta_theme">MAGENTA</span>
-                            </div>
-                            <div class="theme-card" data-t="orange">
-                                <div class="tc-swatch" style="background:#ff6600"></div>
-                                <span data-i18n="orange_theme">NARANJA</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <div class="settings-label" data-i18n="session">SESIÓN ACTIVA</div>
-                        <div class="session-info">
-                            <div class="si-row"><span data-i18n="agent">AGENTE</span><span>AGENTE_SOC_01</span></div>
-                            <div class="si-row"><span data-i18n="level">NIVEL</span><span class="green">ADMIN</span></div>
-                            <div class="si-row"><span data-i18n="uptime">UPTIME</span><span id="session-time">00:00:00</span></div>
-                        </div>
-                    </div>
-                    <button class="logout-btn" id="btn-logout">
-                        <span>⏻</span> <span data-i18n="logout">DESCONECTAR SESIÓN</span>
+                    <button class="scan-start-btn" id="btn-start-scan">
+                        <span>⬡</span> INICIAR ESCÁNER
                     </button>
                 </div>
-            </section>
-        </div>
+            </div>
 
-        <!-- Navegación inferior (móvil) / lateral (PC) -->
-        <nav class="bottom-nav" id="main-nav">
-            <button class="nav-item active" data-tab="dashboard" title="Dashboard">
-                <span class="nav-icon">⊞</span>
-                <span class="nav-label" data-i18n="nav_panel">Panel</span>
-            </button>
-            <button class="nav-item" data-tab="cameras" title="Cámaras">
-                <span class="nav-icon">◎</span>
-                <span class="nav-label" data-i18n="nav_cameras">Cámaras</span>
-            </button>
-            <button class="nav-item" data-tab="terminal" title="Terminal">
-                <span class="nav-icon">⌨</span>
-                <span class="nav-label" data-i18n="nav_terminal">Terminal</span>
-            </button>
-            <button class="nav-item" data-tab="settings" title="Ajustes">
-                <span class="nav-icon">⚙</span>
-                <span class="nav-label" data-i18n="nav_settings">Ajustes</span>
-            </button>
-        </nav>
+            <!-- Permisos -->
+            <div id="scanner-perm" class="scanner-state hidden">
+                <div class="perm-box">
+                    <div class="perm-icon-wrap">
+                        <div class="perm-spinner"></div>
+                        <span class="perm-icon">🔐</span>
+                    </div>
+                    <h3>PERMISOS REQUERIDOS</h3>
+                    <p class="perm-desc">El escáner necesita acceso a la cámara y al sensor de orientación del dispositivo.</p>
+                    <div class="perm-list">
+                        <div class="perm-item" id="perm-cam">
+                            <span class="perm-status pend">◌</span>
+                            <div class="perm-info"><span>Cámara trasera</span><small>Para capturar el entorno</small></div>
+                        </div>
+                        <div class="perm-item" id="perm-gyro">
+                            <span class="perm-status pend">◌</span>
+                            <div class="perm-info"><span>Giroscopio / Orientación</span><small>Para saber hacia dónde apuntas</small></div>
+                        </div>
+                    </div>
+                    <p id="perm-msg" class="perm-msg">Solicitando acceso a la cámara...</p>
+                    <button class="perm-retry-btn hidden" id="btn-perm-retry">↺ REINTENTAR PERMISOS</button>
+                    <button class="perm-cancel-btn" id="btn-perm-cancel">Cancelar</button>
+                </div>
+            </div>
 
-    </main>
+            <!-- Escaneando -->
+            <div id="scanner-scanning" class="scanner-state hidden">
+                <div class="scan-view">
+                    <video id="scan-video" autoplay muted playsinline></video>
+                    <canvas id="scan-canvas" class="hidden"></canvas>
+                    <div class="scan-hud">
+                        <div class="hud-corners">
+                            <div class="hc tl"></div><div class="hc tr"></div>
+                            <div class="hc bl"></div><div class="hc br"></div>
+                        </div>
+                        <div class="hud-crosshair">
+                            <div class="hc-h"></div><div class="hc-v"></div>
+                            <div class="hc-dot"></div>
+                        </div>
+                        <div class="hud-top">
+                            <div class="hud-compass-wrap">
+                                <div class="hud-compass" id="hud-compass">
+                                    <div class="compass-ring"></div>
+                                    <div class="compass-needle" id="compass-needle"></div>
+                                    <span class="compass-n">N</span>
+                                </div>
+                            </div>
+                            <div class="hud-angles">
+                                <div id="hud-az">AZ 0°</div>
+                                <div id="hud-el">EL 0°</div>
+                            </div>
+                        </div>
+                        <div class="hud-bottom">
+                            <div class="hud-coverage">
+                                <div class="cov-label">COBERTURA <span id="cov-pct">0%</span></div>
+                                <div class="cov-bar"><div class="cov-fill" id="cov-fill"></div></div>
+                            </div>
+                            <canvas id="minimap-canvas" class="hud-minimap" width="120" height="60"></canvas>
+                        </div>
+                    </div>
+                    <div class="zone-flash" id="zone-flash"></div>
+                </div>
+                <div class="scan-controls">
+                    <div class="scan-stats-row">
+                        <div class="ss-item"><span id="zones-captured">0</span><small>ZONAS</small></div>
+                        <div class="ss-item"><span id="frames-total">0</span><small>FRAMES</small></div>
+                        <div class="ss-item green"><span id="scan-quality">—</span><small>CALIDAD</small></div>
+                    </div>
+                    <div class="scan-btn-row">
+                        <button class="scan-stop-btn" id="btn-stop-scan">✕ CANCELAR</button>
+                        <button class="scan-finish-btn" id="btn-finish-scan" disabled>✓ FINALIZAR</button>
+                    </div>
+                </div>
+            </div>
 
-    <script src="app.js"></script>
-    
-    <!-- Script para registrar el Service Worker y PWA -->
-    <script>
-// Registrar el Service Worker
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-        .then((registration) => {
-            console.log('✓ Service Worker registrado:', registration);
-            
-            // Verificar actualizaciones periódicamente
-            setInterval(() => {
-                registration.update();
-            }, 3600000); // Cada hora
-            
-            // Escuchar si hay una nueva versión disponible
-            registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'activated') {
-                        console.log('✓ Nueva versión disponible');
-                        // Mostrar notificación
-                        if (confirm('📢 Nueva versión disponible. ¿Actualizar ahora?')) {
-                            window.location.reload();
-                        }
-                    }
-                });
-            });
-        })
-        .catch((error) => {
-            console.log('✗ Error al registrar Service Worker:', error);
-        });
-}
-        
-        // Permitir instalación en iOS y Android
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            console.log('✓ Evento de instalación capturado');
-        });
-        
-        window.addEventListener('appinstalled', () => {
-            console.log('✓ App instalada correctamente');
-        });
-    </script>
+            <!-- Procesando -->
+            <div id="scanner-processing" class="scanner-state hidden">
+                <div class="proc-box">
+                    <div class="proc-icon-wrap">
+                        <svg viewBox="0 0 60 60" class="proc-spinner">
+                            <circle cx="30" cy="30" r="26" fill="none" stroke="var(--border)" stroke-width="3"/>
+                            <circle cx="30" cy="30" r="26" fill="none" stroke="var(--neon)" stroke-width="3"
+                                stroke-dasharray="40 124" stroke-linecap="round">
+                                <animateTransform attributeName="transform" type="rotate" dur="1s" repeatCount="indefinite" from="0 30 30" to="360 30 30"/>
+                            </circle>
+                        </svg>
+                        <span class="proc-glyph">⬡</span>
+                    </div>
+                    <h3>PROCESANDO ESCENA 3D</h3>
+                    <p id="proc-step">Ensamblando panorámica equirectangular...</p>
+                    <div class="proc-bar"><div class="proc-fill" id="proc-fill"></div></div>
+                    <p class="proc-hint">Esto puede tardar unos segundos</p>
+                </div>
+            </div>
 
+            <!-- Visor -->
+            <div id="scanner-viewer" class="scanner-state hidden">
+                <div class="viewer-wrap">
+                    <div id="pano-viewer"></div>
+                    <div class="viewer-overlay">
+                        <div class="vo-top">
+                            <div class="vo-badge">PANORAMA_3D_ACTIVO</div>
+                            <div class="vo-stats">
+                                <span id="vh-zones">0 ZONAS</span>
+                                <span>·</span>
+                                <span id="vh-coverage">0%</span>
+                            </div>
+                        </div>
+                        <div class="vo-hint" id="vo-hint">
+                            <span>👆 Arrastra para mirar alrededor</span>
+                        </div>
+                    </div>
+                    <div class="viewer-toolbar">
+                        <button class="vtb-btn" id="btn-gyro-view" title="Giroscopio">
+                            <span>📱</span><span class="vtb-label">GYRO</span>
+                        </button>
+                        <button class="vtb-btn" id="btn-reset-view" title="Resetear">
+                            <span>⊕</span><span class="vtb-label">RESET</span>
+                        </button>
+                        <button class="vtb-btn accent" id="btn-new-scan" title="Nuevo escan">
+                            <span>⬡</span><span class="vtb-label">NUEVO</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TERMINAL -->
+        <section id="tab-terminal" class="tab-content">
+            <div class="section-title"><span class="sec-icon">⌨</span> TERMINAL_SOC<span class="sec-tag">ROOT</span></div>
+            <div class="terminal-box">
+                <div class="terminal-header">
+                    <span class="t-dot red"></span><span class="t-dot yellow"></span><span class="t-dot green"></span>
+                    <span class="t-title">bash — soc@uniqality:~</span>
+                </div>
+                <div id="terminal-log" class="terminal-body"></div>
+                <div class="terminal-input-row">
+                    <span class="prompt">soc@hub:~$</span>
+                    <span class="cursor-blink">█</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- AJUSTES -->
+        <section id="tab-settings" class="tab-content">
+            <div class="section-title"><span class="sec-icon">⚙</span> CONFIGURACIÓN</div>
+            <div class="settings-pane">
+                <div class="settings-section">
+                    <div class="settings-label">IDIOMA DEL SISTEMA</div>
+                    <div class="setting-row">
+                        <div class="setting-desc"><span>LANGUAGE</span><small>Interfaz del panel SOC</small></div>
+                        <select id="lang-toggle"><option value="es">Español</option><option value="en">English</option></select>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-label">TEMA DE NEÓN</div>
+                    <div class="theme-grid">
+                        <div class="theme-card active" data-t="green"><div class="tc-swatch" style="background:#00ff99"></div><span>VERDE</span></div>
+                        <div class="theme-card" data-t="cyan"><div class="tc-swatch" style="background:#00e5ff"></div><span>CIAN</span></div>
+                        <div class="theme-card" data-t="magenta"><div class="tc-swatch" style="background:#ff00ff"></div><span>MAGENTA</span></div>
+                        <div class="theme-card" data-t="orange"><div class="tc-swatch" style="background:#ff6600"></div><span>NARANJA</span></div>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-label">SESIÓN ACTIVA</div>
+                    <div class="session-info">
+                        <div class="si-row"><span>AGENTE</span><span>AGENTE_SOC_01</span></div>
+                        <div class="si-row"><span>NIVEL</span><span class="green">ADMIN</span></div>
+                        <div class="si-row"><span>SESIÓN</span><span id="session-time">00:00:00</span></div>
+                    </div>
+                </div>
+                <button class="logout-btn" id="btn-logout"><span>⏻</span> DESCONECTAR SESIÓN</button>
+            </div>
+        </section>
+
+    </div>
+
+    <nav class="bottom-nav" id="main-nav">
+        <button class="nav-item active" data-tab="dashboard" title="Dashboard"><span class="nav-icon">⊞</span><span class="nav-label">Panel</span></button>
+        <button class="nav-item" data-tab="cameras" title="Cámaras"><span class="nav-icon">◎</span><span class="nav-label">Cámaras</span></button>
+        <button class="nav-item" data-tab="scanner" title="Escáner 3D"><span class="nav-icon">⬡</span><span class="nav-label">Escáner</span></button>
+        <button class="nav-item" data-tab="terminal" title="Terminal"><span class="nav-icon">⌨</span><span class="nav-label">Terminal</span></button>
+        <button class="nav-item" data-tab="settings" title="Ajustes"><span class="nav-icon">⚙</span><span class="nav-label">Ajustes</span></button>
+    </nav>
+
+</main>
+<script src="app.js"></script>
 </body>
 </html>
