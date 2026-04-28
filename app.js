@@ -10,6 +10,7 @@ const i18n = {
         recent_events: "EVENTOS_RECIENTES",
         panel: "PANEL_CONTROL",
         cameras: "VIGILANCIA_CÁMARAS",
+        scanner: "ESCÁNER_3D",
         terminal: "TERMINAL_SOC",
         settings: "CONFIGURACIÓN", 
         lang_system: "IDIOMA DEL SISTEMA",
@@ -27,6 +28,7 @@ const i18n = {
         logout: "DESCONECTAR SESIÓN",
         nav_panel: "Panel",
         nav_cameras: "Cámaras",
+        nav_scanner: "Escáner",
         nav_terminal: "Terminal",
         nav_settings: "Ajustes",
         signal_lost: "SEÑAL_PERDIDA"
@@ -41,6 +43,7 @@ const i18n = {
         recent_events: "RECENT EVENTS",
         panel: "CONTROL_PANEL",
         cameras: "CAMERA_SURVEILLANCE",
+        scanner: "3D_SCANNER",
         terminal: "TERMINAL_SOC",
         settings: "SYSTEM SETTINGS", 
         lang_system: "SYSTEM LANGUAGE",
@@ -58,6 +61,7 @@ const i18n = {
         logout: "DISCONNECT SESSION",
         nav_panel: "Panel",
         nav_cameras: "Cameras",
+        nav_scanner: "Scanner",
         nav_terminal: "Terminal",
         nav_settings: "Settings",
         signal_lost: "SIGNAL_LOST"
@@ -69,6 +73,19 @@ let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
 let terminalInput = "";
 let isTerminalFocused = false;
+
+// ESTADO DEL ESCÁNER
+let scannerState = {
+    isScanning: false,
+    frames: [],
+    zones: new Set(),
+    coverage: 0,
+    videoStream: null,
+    deviceOrientation: { alpha: 0, beta: 0, gamma: 0 },
+    pointCloud: [],
+    panorama: null,
+    renderer360: null
+};
 
 // COMANDOS DEL TERMINAL SIMULADOS
 const terminalCommands = {
@@ -218,7 +235,7 @@ Threats blocked today: 127`
     },
     scan: {
         es: `INICIANDO ESCANEO DE SEGURIDAD...
-╔══════════════════════════════════════════════════════════════��═╗
+╔════════════════════════════════════════════════════════════��═══╗
 Escaneo de puertos: 65535 puertos analizados
 [████████████████████████████████████████] 100% - Completado ✓
 Escaneo de malware: Base de datos: 2.1M firmas
@@ -299,6 +316,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 loadLogs();
                 loadEvents();
                 setupTerminal();
+                initScanner();
                 setTimeout(() => init3D(localStorage.getItem('theme') || 'green'), 500);
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
@@ -371,7 +389,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function loadEvents() {
         const feed = document.getElementById('event-feed');
         if(!feed) return;
-        feed.innerHTML = `<div class="event-card" style="border-left: 3px solid var(--neon); padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05);"><strong>AUTH_OK</strong><br><small>Acceso de agente validado</small><br><span style="font-size:9px; color: var(--muted);">hace 2 min</span></div>`;
+        feed.innerHTML = `<div class="event-card" style="border-left: 3px solid var(--neon); padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05);"><strong>AUTH_OK</strong><br><small>Usuario: AGENTE_01 | Hora: ${new Date().toLocaleTimeString()}</small></div>`;
     }
 
     // --- SETUP DEL TERMINAL INTERACTIVO ---
@@ -381,21 +399,17 @@ document.addEventListener("DOMContentLoaded", function() {
         
         if(!terminalBody || !terminalBox) return;
 
-        // Hacer el terminal focusable
         terminalBox.setAttribute('tabindex', '0');
 
-        // Cuando el usuario hace click en la terminal
         terminalBox.addEventListener('click', () => {
             isTerminalFocused = true;
             terminalBox.style.outline = 'none';
         });
 
-        // Cuando el usuario sale de la terminal
         terminalBox.addEventListener('blur', () => {
             isTerminalFocused = false;
         });
 
-        // Listener para cualquier tecla en el documento
         document.addEventListener('keydown', (e) => {
             if(!isTerminalFocused) return;
 
@@ -411,7 +425,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        // Listener para caracteres normales
         document.addEventListener('keypress', (e) => {
             if(!isTerminalFocused) return;
             e.preventDefault();
@@ -429,7 +442,6 @@ document.addEventListener("DOMContentLoaded", function() {
         function executeCommand(cmd) {
             const trimmedCmd = cmd.trim().toLowerCase();
             
-            // Mostrar el comando
             terminalBody.innerHTML += `<div class="log-line">[${new Date().toLocaleTimeString()}] soc@hub:~$ ${escapeHtml(cmd)}</div>`;
             
             if(trimmedCmd === 'clear') {
@@ -494,6 +506,381 @@ document.addEventListener("DOMContentLoaded", function() {
             "'": '&#039;'
         };
         return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // ===== FUNCIONES DEL ESCÁNER 3D =====
+    function initScanner() {
+        const btnStartScan = document.getElementById('btn-start-scan');
+        const btnStopScan = document.getElementById('btn-stop-scan');
+        const btnFinishScan = document.getElementById('btn-finish-scan');
+        const btnPermRetry = document.getElementById('btn-perm-retry');
+        const btnPermCancel = document.getElementById('btn-perm-cancel');
+        const btnGyroView = document.getElementById('btn-gyro-view');
+        const btnResetView = document.getElementById('btn-reset-view');
+        const btnNewScan = document.getElementById('btn-new-scan');
+
+        if(btnStartScan) {
+            btnStartScan.onclick = async function() {
+                resetScannerState();
+                showScannerState('perm');
+                
+                try {
+                    await requestCameraPermission();
+                    await requestGyroPermission();
+                    startScanning();
+                } catch(err) {
+                    console.error('Error:', err);
+                    document.getElementById('btn-perm-retry').classList.remove('hidden');
+                }
+            };
+        }
+
+        if(btnPermCancel) {
+            btnPermCancel.onclick = () => showScannerState('idle');
+        }
+
+        if(btnPermRetry) {
+            btnPermRetry.onclick = async () => {
+                try {
+                    await requestCameraPermission();
+                    startScanning();
+                } catch(err) {
+                    console.error('Error:', err);
+                }
+            };
+        }
+
+        if(btnStopScan) {
+            btnStopScan.onclick = () => {
+                stopScanning();
+                showScannerState('idle');
+            };
+        }
+
+        if(btnFinishScan) {
+            btnFinishScan.onclick = async () => {
+                stopScanning();
+                showScannerState('processing');
+                
+                for(let i = 1; i <= 100; i += 10) {
+                    document.getElementById('proc-fill').style.width = i + '%';
+                    await new Promise(r => setTimeout(r, 200));
+                }
+                
+                generate3DModel();
+                showScannerState('viewer');
+                showViewer360();
+            };
+        }
+
+        if(btnGyroView) {
+            btnGyroView.onclick = () => {
+                const lang = localStorage.getItem('lang') || 'es';
+                alert(lang === 'es' ? 'Modo giroscópico activado - Mueve el dispositivo para ver' : 'Gyro mode enabled - Move your device to view');
+            };
+        }
+
+        if(btnResetView) {
+            btnResetView.onclick = () => {
+                showViewer360();
+            };
+        }
+
+        if(btnNewScan) {
+            btnNewScan.onclick = () => {
+                resetScannerState();
+                showScannerState('idle');
+            };
+        }
+
+        window.addEventListener('deviceorientation', (event) => {
+            scannerState.deviceOrientation = {
+                alpha: event.alpha || 0,
+                beta: event.beta || 0,
+                gamma: event.gamma || 0
+            };
+            updateCompass();
+        });
+    }
+
+    async function requestCameraPermission() {
+        return new Promise(async (resolve, reject) => {
+            const msg = document.getElementById('perm-msg');
+            const permCam = document.getElementById('perm-cam');
+            
+            if(msg) msg.innerText = 'Solicitando acceso a la cámara...';
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+                });
+                
+                scannerState.videoStream = stream;
+                
+                if(permCam) {
+                    permCam.querySelector('.perm-status').classList.remove('pend');
+                    permCam.querySelector('.perm-status').classList.add('ok');
+                    permCam.querySelector('.perm-status').innerText = '✓';
+                }
+                
+                if(msg) msg.innerText = 'Cámara otorgada. Solicitando giroscopio...';
+                resolve();
+            } catch(err) {
+                if(msg) msg.innerText = '⚠ Acceso a cámara denegado';
+                reject(err);
+            }
+        });
+    }
+
+    async function requestGyroPermission() {
+        return new Promise((resolve) => {
+            const permGyro = document.getElementById('perm-gyro');
+            
+            if('DeviceOrientationEvent' in window) {
+                if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if(permissionState === 'granted') {
+                                if(permGyro) {
+                                    permGyro.querySelector('.perm-status').classList.remove('pend');
+                                    permGyro.querySelector('.perm-status').classList.add('ok');
+                                    permGyro.querySelector('.perm-status').innerText = '✓';
+                                }
+                            }
+                            resolve();
+                        })
+                        .catch(() => resolve());
+                } else {
+                    if(permGyro) {
+                        permGyro.querySelector('.perm-status').classList.remove('pend');
+                        permGyro.querySelector('.perm-status').classList.add('ok');
+                        permGyro.querySelector('.perm-status').innerText = '✓';
+                    }
+                    resolve();
+                }
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    function startScanning() {
+        showScannerState('scanning');
+        
+        const video = document.getElementById('scan-video');
+        const canvas = document.getElementById('scan-canvas');
+        
+        if(video && scannerState.videoStream) {
+            video.srcObject = scannerState.videoStream;
+            video.play();
+            
+            const captureInterval = setInterval(() => {
+                if(!scannerState.isScanning) {
+                    clearInterval(captureInterval);
+                    return;
+                }
+                
+                if(canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0);
+                    
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    scannerState.frames.push({
+                        data: imageData,
+                        orientation: { ...scannerState.deviceOrientation },
+                        timestamp: Date.now()
+                    });
+                    
+                    detectZone();
+                    updateScanStats();
+                }
+            }, 500);
+        }
+        
+        scannerState.isScanning = true;
+        document.getElementById('btn-finish-scan').disabled = false;
+    }
+
+    function stopScanning() {
+        scannerState.isScanning = false;
+        
+        if(scannerState.videoStream) {
+            scannerState.videoStream.getTracks().forEach(track => track.stop());
+            scannerState.videoStream = null;
+        }
+    }
+
+    function detectZone() {
+        const alpha = Math.round(scannerState.deviceOrientation.alpha / 45);
+        const beta = Math.round(scannerState.deviceOrientation.beta / 45);
+        const zoneKey = `${alpha}-${beta}`;
+        
+        scannerState.zones.add(zoneKey);
+        
+        const coverage = Math.min((scannerState.zones.size / 64) * 100, 100);
+        scannerState.coverage = coverage;
+        
+        document.getElementById('cov-pct').innerText = Math.round(coverage) + '%';
+        document.getElementById('cov-fill').style.width = coverage + '%';
+    }
+
+    function updateScanStats() {
+        document.getElementById('zones-captured').innerText = scannerState.zones.size;
+        document.getElementById('frames-total').innerText = scannerState.frames.length;
+        
+        let quality = '—';
+        if(scannerState.frames.length > 50) quality = 'EXCELENTE';
+        else if(scannerState.frames.length > 30) quality = 'BUENA';
+        else if(scannerState.frames.length > 10) quality = 'MEDIA';
+        
+        document.getElementById('scan-quality').innerText = quality;
+    }
+
+    function updateCompass() {
+        const needle = document.getElementById('compass-needle');
+        if(needle) {
+            needle.style.transform = `rotate(${scannerState.deviceOrientation.alpha}deg)`;
+        }
+        
+        const azEl = document.getElementById('hud-az');
+        const el = document.getElementById('hud-el');
+        
+        if(azEl) azEl.innerText = `AZ ${Math.round(scannerState.deviceOrientation.alpha)}°`;
+        if(el) el.innerText = `EL ${Math.round(scannerState.deviceOrientation.beta)}°`;
+    }
+
+    function generate3DModel() {
+        if(scannerState.frames.length === 0) return;
+        
+        scannerState.frames.forEach((frame, index) => {
+            const imageData = frame.data;
+            const data = imageData.data;
+            
+            for(let i = 0; i < data.length; i += 40) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const brightness = (r + g + b) / 3;
+                
+                if(brightness > 50) {
+                    const angle = (index / Math.max(scannerState.frames.length, 1)) * Math.PI * 2;
+                    const distance = (brightness / 255) * 3;
+                    const verticalPos = (Math.random() - 0.5) * 2;
+                    
+                    scannerState.pointCloud.push({
+                        x: Math.cos(angle) * distance,
+                        y: verticalPos,
+                        z: Math.sin(angle) * distance,
+                        color: new THREE.Color(r/255, g/255, b/255)
+                    });
+                }
+            }
+        });
+    }
+
+    function showViewer360() {
+        const viewer = document.getElementById('pano-viewer');
+        if(!viewer || typeof THREE === 'undefined') return;
+        
+        viewer.innerHTML = '';
+        
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, viewer.clientWidth / viewer.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+        viewer.appendChild(renderer.domElement);
+        
+        // Crear geometría de esfera
+        const geometry = new THREE.SphereGeometry(500, 64, 32);
+        geometry.scale(-1, 1, 1);
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 2048;
+        canvas.height = 1024;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Dibujar punto cloud
+        if(scannerState.pointCloud.length > 0) {
+            scannerState.pointCloud.forEach(point => {
+                const x = ((Math.atan2(point.z, point.x) / Math.PI + 1) / 2) * canvas.width;
+                const y = ((Math.asin(point.y) / Math.PI + 0.5)) * canvas.height;
+                
+                if(x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+                    ctx.fillStyle = `rgb(${Math.round(point.color.r * 255)},${Math.round(point.color.g * 255)},${Math.round(point.color.b * 255)})`;
+                    ctx.fillRect(x, y, 3, 3);
+                }
+            });
+        } else {
+            // Patrón por defecto si no hay punto cloud
+            for(let i = 0; i < canvas.width; i += 20) {
+                for(let j = 0; j < canvas.height; j += 20) {
+                    ctx.fillStyle = `hsl(${(i/canvas.width)*360}, 80%, 50%)`;
+                    ctx.fillRect(i, j, 15, 15);
+                }
+            }
+        }
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.MeshBasicMaterial({ map: texture });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+        
+        camera.position.set(0, 0, 0);
+        
+        let isDrag = false;
+        let prevPos = { x: 0, y: 0 };
+        
+        renderer.domElement.addEventListener('mousedown', () => { isDrag = true; });
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if(isDrag) {
+                const deltaX = e.clientX - prevPos.x;
+                const deltaY = e.clientY - prevPos.y;
+                camera.rotation.y -= deltaX * 0.005;
+                camera.rotation.x -= deltaY * 0.005;
+            }
+            prevPos = { x: e.clientX, y: e.clientY };
+        });
+        renderer.domElement.addEventListener('mouseup', () => { isDrag = false; });
+        
+        const animate = () => {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        };
+        animate();
+        
+        document.getElementById('vh-zones').innerText = scannerState.zones.size + ' ZONAS';
+        document.getElementById('vh-coverage').innerText = Math.round(scannerState.coverage) + '%';
+    }
+
+    function showScannerState(state) {
+        const states = ['idle', 'perm', 'scanning', 'processing', 'viewer'];
+        states.forEach(s => {
+            const el = document.getElementById(`scanner-${s}`);
+            if(el) el.classList.add('hidden');
+        });
+        
+        const el = document.getElementById(`scanner-${state}`);
+        if(el) el.classList.remove('hidden');
+    }
+
+    function resetScannerState() {
+        scannerState = {
+            isScanning: false,
+            frames: [],
+            zones: new Set(),
+            coverage: 0,
+            videoStream: null,
+            deviceOrientation: { alpha: 0, beta: 0, gamma: 0 },
+            pointCloud: [],
+            panorama: null,
+            renderer360: null
+        };
     }
 
     function init3D(currentTheme) {
@@ -570,6 +957,6 @@ document.addEventListener("DOMContentLoaded", function() {
             };
             animate();
 
-        } catch(e) { console.log("3D Falló silenciosamente"); }
+        } catch(e) { console.log("3D Error:", e); }
     }
 });
