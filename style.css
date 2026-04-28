@@ -684,3 +684,22 @@ select {
     .nav-icon { font-size: 24px; }
     .cam-grid { grid-template-columns: repeat(4, 1fr); }
 }
+/* === BOTÓN ACCENT === */
+.scan-finish-btn.accent {
+    background: var(--neon);
+    color: #000;
+    font-weight: 700;
+    border: 2px solid var(--neon);
+    box-shadow: 0 0 20px var(--neon-glow);
+    transition: all 0.3s;
+}
+
+.scan-finish-btn.accent:hover {
+    background: #fff;
+    box-shadow: 0 0 30px var(--neon);
+    transform: scale(1.05);
+}
+
+.scan-finish-btn.accent:active {
+    transform: scale(0.98);
+}
