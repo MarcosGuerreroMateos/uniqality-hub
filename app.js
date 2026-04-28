@@ -84,7 +84,8 @@ let scannerState = {
     deviceOrientation: { alpha: 0, beta: 0, gamma: 0 },
     pointCloud: [],
     panorama: null,
-    renderer360: null
+    renderer360: null,
+    captureInterval: null
 };
 
 // COMANDOS DEL TERMINAL SIMULADOS
@@ -198,7 +199,7 @@ Paquetes pérdidos: 0.02%
 Estado: ESTABLE ✓
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
         en: `NETWORK STATUS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━��━━━━
 Interface: eth0
 Local IP: 192.168.1.100
 Gateway: 192.168.1.1
@@ -235,7 +236,7 @@ Threats blocked today: 127`
     },
     scan: {
         es: `INICIANDO ESCANEO DE SEGURIDAD...
-╔════════════════════════════════════════════════════════════��═══╗
+╔════════════════════════════════════════════════════════════════╗
 Escaneo de puertos: 65535 puertos analizados
 [████████████████████████████████████████] 100% - Completado ✓
 Escaneo de malware: Base de datos: 2.1M firmas
@@ -316,8 +317,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 loadLogs();
                 loadEvents();
                 setupTerminal();
-                initScanner();
                 setTimeout(() => init3D(localStorage.getItem('theme') || 'green'), 500);
+                setTimeout(() => initScanner(), 600);
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
             }
@@ -509,7 +510,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ===== FUNCIONES DEL ESCÁNER 3D =====
-    function initScanner() {
+    window.initScanner = function() {
+        console.log("🔍 Inicializando escáner...");
+        
         const btnStartScan = document.getElementById('btn-start-scan');
         const btnStopScan = document.getElementById('btn-stop-scan');
         const btnFinishScan = document.getElementById('btn-finish-scan');
@@ -521,6 +524,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if(btnStartScan) {
             btnStartScan.onclick = async function() {
+                console.log("✅ Click en INICIAR ESCÁNER");
                 resetScannerState();
                 showScannerState('perm');
                 
@@ -529,14 +533,18 @@ document.addEventListener("DOMContentLoaded", function() {
                     await requestGyroPermission();
                     startScanning();
                 } catch(err) {
-                    console.error('Error:', err);
+                    console.error('❌ Error:', err);
                     document.getElementById('btn-perm-retry').classList.remove('hidden');
                 }
             };
         }
 
         if(btnPermCancel) {
-            btnPermCancel.onclick = () => showScannerState('idle');
+            btnPermCancel.onclick = () => {
+                console.log("❌ Cancelar permisos");
+                stopScanning();
+                showScannerState('idle');
+            };
         }
 
         if(btnPermRetry) {
@@ -552,6 +560,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if(btnStopScan) {
             btnStopScan.onclick = () => {
+                console.log("⏹️ Detener escaneo");
                 stopScanning();
                 showScannerState('idle');
             };
@@ -559,6 +568,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if(btnFinishScan) {
             btnFinishScan.onclick = async () => {
+                console.log("✓ Finalizar escaneo");
                 stopScanning();
                 showScannerState('processing');
                 
@@ -576,7 +586,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if(btnGyroView) {
             btnGyroView.onclick = () => {
                 const lang = localStorage.getItem('lang') || 'es';
-                alert(lang === 'es' ? 'Modo giroscópico activado - Mueve el dispositivo para ver' : 'Gyro mode enabled - Move your device to view');
+                alert(lang === 'es' ? '📱 Modo giroscópico - Mueve el dispositivo para ver alrededor' : '📱 Gyro mode - Move your device to look around');
             };
         }
 
@@ -601,18 +611,22 @@ document.addEventListener("DOMContentLoaded", function() {
             };
             updateCompass();
         });
-    }
+    };
 
     async function requestCameraPermission() {
         return new Promise(async (resolve, reject) => {
             const msg = document.getElementById('perm-msg');
             const permCam = document.getElementById('perm-cam');
             
-            if(msg) msg.innerText = 'Solicitando acceso a la cámara...';
+            if(msg) msg.innerText = '📷 Solicitando acceso a la cámara...';
             
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+                    video: { 
+                        facingMode: 'environment', 
+                        width: { ideal: 1280 }, 
+                        height: { ideal: 720 } 
+                    } 
                 });
                 
                 scannerState.videoStream = stream;
@@ -623,10 +637,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     permCam.querySelector('.perm-status').innerText = '✓';
                 }
                 
-                if(msg) msg.innerText = 'Cámara otorgada. Solicitando giroscopio...';
+                if(msg) msg.innerText = '✓ Cámara otorgada. Solicitando giroscopio...';
+                console.log("✓ Cámara obtenida");
                 resolve();
             } catch(err) {
                 if(msg) msg.innerText = '⚠ Acceso a cámara denegado';
+                console.error("❌ Error cámara:", err);
                 reject(err);
             }
         });
@@ -646,25 +662,32 @@ document.addEventListener("DOMContentLoaded", function() {
                                     permGyro.querySelector('.perm-status').classList.add('ok');
                                     permGyro.querySelector('.perm-status').innerText = '✓';
                                 }
+                                console.log("✓ Giroscopio otorgado");
                             }
                             resolve();
                         })
-                        .catch(() => resolve());
+                        .catch(() => {
+                            console.log("⚠ Giroscopio no disponible");
+                            resolve();
+                        });
                 } else {
                     if(permGyro) {
                         permGyro.querySelector('.perm-status').classList.remove('pend');
                         permGyro.querySelector('.perm-status').classList.add('ok');
                         permGyro.querySelector('.perm-status').innerText = '✓';
                     }
+                    console.log("✓ Giroscopio disponible");
                     resolve();
                 }
             } else {
+                console.log("⚠ DeviceOrientation no disponible");
                 resolve();
             }
         });
     }
 
     function startScanning() {
+        console.log("🎥 Iniciando captura...");
         showScannerState('scanning');
         
         const video = document.getElementById('scan-video');
@@ -672,11 +695,11 @@ document.addEventListener("DOMContentLoaded", function() {
         
         if(video && scannerState.videoStream) {
             video.srcObject = scannerState.videoStream;
-            video.play();
+            video.play().catch(e => console.error("Error play:", e));
             
-            const captureInterval = setInterval(() => {
+            scannerState.captureInterval = setInterval(() => {
                 if(!scannerState.isScanning) {
-                    clearInterval(captureInterval);
+                    clearInterval(scannerState.captureInterval);
                     return;
                 }
                 
@@ -700,11 +723,17 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         
         scannerState.isScanning = true;
-        document.getElementById('btn-finish-scan').disabled = false;
+        const finishBtn = document.getElementById('btn-finish-scan');
+        if(finishBtn) finishBtn.disabled = false;
     }
 
     function stopScanning() {
+        console.log("⏹️ Deteniendo escaneo...");
         scannerState.isScanning = false;
+        
+        if(scannerState.captureInterval) {
+            clearInterval(scannerState.captureInterval);
+        }
         
         if(scannerState.videoStream) {
             scannerState.videoStream.getTracks().forEach(track => track.stop());
@@ -722,20 +751,27 @@ document.addEventListener("DOMContentLoaded", function() {
         const coverage = Math.min((scannerState.zones.size / 64) * 100, 100);
         scannerState.coverage = coverage;
         
-        document.getElementById('cov-pct').innerText = Math.round(coverage) + '%';
-        document.getElementById('cov-fill').style.width = coverage + '%';
+        const covPct = document.getElementById('cov-pct');
+        const covFill = document.getElementById('cov-fill');
+        
+        if(covPct) covPct.innerText = Math.round(coverage) + '%';
+        if(covFill) covFill.style.width = coverage + '%';
     }
 
     function updateScanStats() {
-        document.getElementById('zones-captured').innerText = scannerState.zones.size;
-        document.getElementById('frames-total').innerText = scannerState.frames.length;
+        const zonesEl = document.getElementById('zones-captured');
+        const framesEl = document.getElementById('frames-total');
+        const qualityEl = document.getElementById('scan-quality');
+        
+        if(zonesEl) zonesEl.innerText = scannerState.zones.size;
+        if(framesEl) framesEl.innerText = scannerState.frames.length;
         
         let quality = '—';
         if(scannerState.frames.length > 50) quality = 'EXCELENTE';
         else if(scannerState.frames.length > 30) quality = 'BUENA';
         else if(scannerState.frames.length > 10) quality = 'MEDIA';
         
-        document.getElementById('scan-quality').innerText = quality;
+        if(qualityEl) qualityEl.innerText = quality;
     }
 
     function updateCompass() {
@@ -752,6 +788,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function generate3DModel() {
+        console.log("🔧 Generando modelo 3D...");
         if(scannerState.frames.length === 0) return;
         
         scannerState.frames.forEach((frame, index) => {
@@ -778,11 +815,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
         });
+        console.log("✓ Puntos generados:", scannerState.pointCloud.length);
     }
 
     function showViewer360() {
+        console.log("📺 Mostrando visor 360...");
         const viewer = document.getElementById('pano-viewer');
-        if(!viewer || typeof THREE === 'undefined') return;
+        if(!viewer || typeof THREE === 'undefined') {
+            console.error("❌ THREE.js no disponible o viewer no existe");
+            return;
+        }
         
         viewer.innerHTML = '';
         
@@ -793,7 +835,6 @@ document.addEventListener("DOMContentLoaded", function() {
         renderer.setSize(viewer.clientWidth, viewer.clientHeight);
         viewer.appendChild(renderer.domElement);
         
-        // Crear geometría de esfera
         const geometry = new THREE.SphereGeometry(500, 64, 32);
         geometry.scale(-1, 1, 1);
         
@@ -805,7 +846,6 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.fillStyle = '#1a1a2e';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Dibujar punto cloud
         if(scannerState.pointCloud.length > 0) {
             scannerState.pointCloud.forEach(point => {
                 const x = ((Math.atan2(point.z, point.x) / Math.PI + 1) / 2) * canvas.width;
@@ -817,7 +857,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             });
         } else {
-            // Patrón por defecto si no hay punto cloud
             for(let i = 0; i < canvas.width; i += 20) {
                 for(let j = 0; j < canvas.height; j += 20) {
                     ctx.fillStyle = `hsl(${(i/canvas.width)*360}, 80%, 50%)`;
@@ -854,8 +893,11 @@ document.addEventListener("DOMContentLoaded", function() {
         };
         animate();
         
-        document.getElementById('vh-zones').innerText = scannerState.zones.size + ' ZONAS';
-        document.getElementById('vh-coverage').innerText = Math.round(scannerState.coverage) + '%';
+        const vhZones = document.getElementById('vh-zones');
+        const vhCoverage = document.getElementById('vh-coverage');
+        
+        if(vhZones) vhZones.innerText = scannerState.zones.size + ' ZONAS';
+        if(vhCoverage) vhCoverage.innerText = Math.round(scannerState.coverage) + '%';
     }
 
     function showScannerState(state) {
@@ -866,7 +908,10 @@ document.addEventListener("DOMContentLoaded", function() {
         });
         
         const el = document.getElementById(`scanner-${state}`);
-        if(el) el.classList.remove('hidden');
+        if(el) {
+            el.classList.remove('hidden');
+            console.log(`📍 Estado del escáner: ${state}`);
+        }
     }
 
     function resetScannerState() {
@@ -879,7 +924,8 @@ document.addEventListener("DOMContentLoaded", function() {
             deviceOrientation: { alpha: 0, beta: 0, gamma: 0 },
             pointCloud: [],
             panorama: null,
-            renderer360: null
+            renderer360: null,
+            captureInterval: null
         };
     }
 
@@ -957,6 +1003,6 @@ document.addEventListener("DOMContentLoaded", function() {
             };
             animate();
 
-        } catch(e) { console.log("3D Error:", e); }
+        } catch(e) { console.error("3D Error:", e); }
     }
 });
