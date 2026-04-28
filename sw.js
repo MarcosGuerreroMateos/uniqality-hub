@@ -58,8 +58,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Excluir ciertos dominios
-  if (url.hostname !== 'localhost' && url.hostname !== 'marcosguerre romateos.github.io' && !request.url.includes('uniqality-hub')) {
+  // Excluir ciertos dominios (corregido el nombre de usuario de GitHub sin espacios)
+  if (url.hostname !== 'localhost' && url.hostname !== 'marcosguerreromateos.github.io' && !request.url.includes('uniqality-hub')) {
     return;
   }
 
