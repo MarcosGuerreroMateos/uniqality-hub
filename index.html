@@ -101,7 +101,6 @@
 
 <!-- APP -->
 <main id="main-app" class="hidden">
-
     <header class="top-bar">
         <div class="tb-left">
             <div class="nav-logo-mini">U</div>
@@ -114,13 +113,10 @@
     </header>
 
     <div class="content-area">
-
         <!-- DASHBOARD -->
         <section id="tab-dashboard" class="tab-content active">
             <div class="section-title"><span class="sec-icon">⊞</span> PANEL_CONTROL<span class="sec-tag">LIVE</span></div>
             <div class="dashboard-grid">
-                
-                <!-- NODO DIGITAL 3D (ACTUALIZADO) -->
                 <div class="card model-card">
                     <div class="card-header">
                         <span>NODO_DIGITAL_3D</span>
@@ -132,7 +128,6 @@
                     <div id="canvas-3d"></div>
                     <div class="card-footer">Arrastrar para rotar</div>
                 </div>
-
                 <div class="card events-card">
                     <div class="card-header"><span>EVENTOS_RECIENTES</span><span class="card-badge pulse">EN VIVO</span></div>
                     <div id="event-feed" class="feed"></div>
@@ -160,128 +155,52 @@
             </div>
         </section>
 
-        <!-- ESCÁNER 3D IA -->
+        <!-- ESCÁNER 3D -->
         <section id="tab-scanner" class="tab-content">
-            <div class="section-title"><span class="sec-icon">⬡</span> GENERADOR_IA_3D<span class="sec-tag" id="scanner-tag">HF_API</span></div>
-
-            <!-- Idle -->
+            <div class="section-title"><span class="sec-icon">⬡</span> GENERADOR_IA_3D<span class="sec-tag" id="scanner-tag">REAL_TIME</span></div>
             <div id="scanner-idle" class="scanner-state">
                 <div class="scanner-hero">
-                    <div class="scanner-icon-big">
-                        <div class="sib-ring r1"></div>
-                        <div class="sib-ring r2"></div>
-                        <div class="sib-ring r3"></div>
-                        <span class="sib-glyph">🧠</span>
-                    </div>
+                    <div class="scanner-icon-big"><span class="sib-glyph">🧠</span></div>
                     <h2 class="scanner-title">IA FOTOGRAMÉTRICA</h2>
-                    <p class="scanner-desc">Toma 4 fotografías de los muros principales de la ubicación. La Inteligencia Artificial reconstruirá la geometría y devolverá un modelo 3D detallado de la habitación.</p>
-                    <div class="scanner-tips">
-                        <div class="tip-item"><span class="tip-num">01</span><span>Toma una foto de la pared Norte</span></div>
-                        <div class="tip-item"><span class="tip-num">02</span><span>Toma una foto de la pared Sur</span></div>
-                        <div class="tip-item"><span class="tip-num">03</span><span>Toma una foto de la pared Este</span></div>
-                        <div class="tip-item"><span class="tip-num">04</span><span>Toma una foto de la pared Oeste</span></div>
-                    </div>
-                    <button class="scan-start-btn" id="btn-start-scan">
-                        <span>📷</span> INICIAR CAPTURAS
-                    </button>
+                    <p class="scanner-desc">Captura 4 ángulos de un objeto para generar un modelo 3D persistente.</p>
+                    <button class="scan-start-btn" id="btn-start-scan">📷 INICIAR CAPTURAS</button>
                 </div>
             </div>
-
-            <!-- Permisos -->
             <div id="scanner-perm" class="scanner-state hidden">
                 <div class="perm-box">
-                    <div class="perm-icon-wrap">
-                        <div class="perm-spinner"></div>
-                        <span class="perm-icon">🔐</span>
-                    </div>
                     <h3>PERMISOS REQUERIDOS</h3>
-                    <p class="perm-desc">La aplicación necesita acceso a la cámara para capturar los datos.</p>
-                    <div class="perm-list">
-                        <div class="perm-item" id="perm-cam">
-                            <span class="perm-status pend">◌</span>
-                            <div class="perm-info"><span>Cámara trasera</span><small>Para tomar las fotos base</small></div>
-                        </div>
-                    </div>
-                    <p id="perm-msg" class="perm-msg">Solicitando acceso a la cámara...</p>
-                    <button class="perm-retry-btn hidden" id="btn-perm-retry">↺ REINTENTAR</button>
+                    <p id="perm-msg">Solicitando acceso a la cámara...</p>
+                    <div id="perm-cam" class="perm-item"><span class="perm-status pend">◌</span> Cámara</div>
                     <button class="perm-cancel-btn" id="btn-perm-cancel">Cancelar</button>
                 </div>
             </div>
-
-            <!-- Escaneando / Tomando Fotos -->
             <div id="scanner-scanning" class="scanner-state hidden">
-                <div class="scan-view" style="display: flex; flex-direction: column; height: 100%;">
-                    
-                    <div style="position: relative; flex: 1; overflow: hidden; background: #000; border: 1px solid var(--border);">
-                        <video id="scan-video" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
-                        <canvas id="scan-canvas" class="hidden"></canvas>
-                        
-                        <div class="photo-slots">
-                            <div class="slot" id="slot-1">1</div>
-                            <div class="slot" id="slot-2">2</div>
-                            <div class="slot" id="slot-3">3</div>
-                            <div class="slot" id="slot-4">4</div>
-                        </div>
-
-                        <div class="hud-crosshair">
-                            <div class="hc-h"></div><div class="hc-v"></div><div class="hc-dot"></div>
-                        </div>
+                <div class="scan-view">
+                    <video id="scan-video" autoplay muted playsinline></video>
+                    <canvas id="scan-canvas" class="hidden"></canvas>
+                    <div class="photo-slots">
+                        <div class="slot" id="slot-1">1</div><div class="slot" id="slot-2">2</div>
+                        <div class="slot" id="slot-3">3</div><div class="slot" id="slot-4">4</div>
                     </div>
-
-                    <div class="scan-controls" style="padding: 20px; text-align: center; background: var(--card);">
-                        <p id="capture-instruction" style="color: var(--neon); margin-bottom: 15px; font-size: 14px; letter-spacing: 2px;">APUNTA A LA PARED 1 Y DISPARA</p>
-                        
-                        <div class="btn-capture" id="btn-take-photo">
-                            <div class="inner-circle"></div>
-                        </div>
-
-                        <button class="scan-stop-btn" id="btn-stop-scan" style="margin-top: 20px;">✕ CANCELAR OPERACIÓN</button>
+                    <div class="scan-controls">
+                        <p id="capture-instruction">FOTO 1: FRONTAL / DIAGONAL</p>
+                        <div class="btn-capture" id="btn-take-photo"><div class="inner-circle"></div></div>
+                        <button class="scan-stop-btn" id="btn-stop-scan">✕ CANCELAR</button>
                     </div>
                 </div>
             </div>
-
-            <!-- Procesando (IA Real) -->
             <div id="scanner-processing" class="scanner-state hidden">
                 <div class="proc-box">
-                    <div class="proc-icon-wrap">
-                        <svg viewBox="0 0 60 60" class="proc-spinner">
-                            <circle cx="30" cy="30" r="26" fill="none" stroke="var(--border)" stroke-width="3"/>
-                            <circle cx="30" cy="30" r="26" fill="none" stroke="var(--neon)" stroke-width="3"
-                                stroke-dasharray="40 124" stroke-linecap="round">
-                                <animateTransform attributeName="transform" type="rotate" dur="1s" repeatCount="indefinite" from="0 30 30" to="360 30 30"/>
-                            </circle>
-                        </svg>
-                        <span class="proc-glyph">🧠</span>
-                    </div>
-                    <h3>EJECUTANDO SOLICITUD A IA</h3>
-                    <p id="proc-step">Enviando imágenes al servidor...</p>
-                    <div class="proc-bar"><div class="proc-fill" id="proc-fill" style="width: 10%;"></div></div>
-                    <p class="proc-hint">Este proceso puede tardar varios segundos dependiendo de la carga del servidor.</p>
+                    <h3 id="proc-step">Procesando...</h3>
+                    <div class="proc-bar"><div class="proc-fill" id="proc-fill"></div></div>
                 </div>
             </div>
-
-            <!-- Visor 3D Final -->
             <div id="scanner-viewer" class="scanner-state hidden">
                 <div class="viewer-wrap">
                     <div id="pano-viewer"></div>
-                    <div class="viewer-overlay">
-                        <div class="vo-top">
-                            <div class="vo-badge">MODELO 3D IMPORTADO</div>
-                            <div class="vo-stats">
-                                <span class="green">✓ RECONSTRUCCIÓN COMPLETADA</span>
-                            </div>
-                        </div>
-                        <div class="vo-hint" id="vo-hint">
-                            <span>👆 Arrastra para inspeccionar el modelo generado</span>
-                        </div>
-                    </div>
                     <div class="viewer-toolbar">
-                        <button class="vtb-btn" id="btn-reset-view" title="Centrar">
-                            <span>⊕</span><span class="vtb-label">CENTRAR</span>
-                        </button>
-                        <button class="vtb-btn accent" id="btn-new-scan" title="Nuevo Escaneo">
-                            <span>⬡</span><span class="vtb-label">NUEVO ESCANEO</span>
-                        </button>
+                        <button class="vtb-btn" id="btn-reset-view">⊕ CENTRAR</button>
+                        <button class="vtb-btn accent" id="btn-new-scan">⬡ NUEVO</button>
                     </div>
                 </div>
             </div>
@@ -293,7 +212,7 @@
             <div class="terminal-box">
                 <div class="terminal-header">
                     <span class="t-dot red"></span><span class="t-dot yellow"></span><span class="t-dot green"></span>
-                    <span class="t-title">bash — soc@uniqality:~</span>
+                    <span class="t-title">bash — soc@hub:~</span>
                 </div>
                 <div id="terminal-log" class="terminal-body"></div>
                 <div class="terminal-input-row">
@@ -308,13 +227,6 @@
             <div class="section-title"><span class="sec-icon">⚙</span> CONFIGURACIÓN</div>
             <div class="settings-pane">
                 <div class="settings-section">
-                    <div class="settings-label">IDIOMA DEL SISTEMA</div>
-                    <div class="setting-row">
-                        <div class="setting-desc"><span>LANGUAGE</span><small>Interfaz del panel SOC</small></div>
-                        <select id="lang-toggle"><option value="es">Español</option><option value="en">English</option></select>
-                    </div>
-                </div>
-                <div class="settings-section">
                     <div class="settings-label">TEMA DE NEÓN</div>
                     <div class="theme-grid">
                         <div class="theme-card active" data-t="green"><div class="tc-swatch" style="background:#00ff99"></div><span>VERDE</span></div>
@@ -323,28 +235,18 @@
                         <div class="theme-card" data-t="orange"><div class="tc-swatch" style="background:#ff6600"></div><span>NARANJA</span></div>
                     </div>
                 </div>
-                <div class="settings-section">
-                    <div class="settings-label">SESIÓN ACTIVA</div>
-                    <div class="session-info">
-                        <div class="si-row"><span>AGENTE</span><span>AGENTE_SOC_01</span></div>
-                        <div class="si-row"><span>NIVEL</span><span class="green">ADMIN</span></div>
-                        <div class="si-row"><span>SESIÓN</span><span id="session-time">00:00:00</span></div>
-                    </div>
-                </div>
-                <button class="logout-btn" id="btn-logout"><span>⏻</span> DESCONECTAR SESIÓN</button>
+                <button class="logout-btn" id="btn-logout"><span>⏻</span> DESCONECTAR</button>
             </div>
         </section>
-
     </div>
 
-    <nav class="bottom-nav" id="main-nav">
-        <button class="nav-item active" data-tab="dashboard" title="Dashboard"><span class="nav-icon">⊞</span><span class="nav-label">Panel</span></button>
-        <button class="nav-item" data-tab="cameras" title="Cámaras"><span class="nav-icon">◎</span><span class="nav-label">Cámaras</span></button>
-        <button class="nav-item" data-tab="scanner" title="Escáner 3D"><span class="nav-icon">⬡</span><span class="nav-label">Escáner</span></button>
-        <button class="nav-item" data-tab="terminal" title="Terminal"><span class="nav-icon">⌨</span><span class="nav-label">Terminal</span></button>
-        <button class="nav-item" data-tab="settings" title="Ajustes"><span class="nav-icon">⚙</span><span class="nav-label">Ajustes</span></button>
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-tab="dashboard">⊞ Panel</button>
+        <button class="nav-item" data-tab="cameras">◎ Cámaras</button>
+        <button class="nav-item" data-tab="scanner">⬡ Escáner</button>
+        <button class="nav-item" data-tab="terminal">⌨ Terminal</button>
+        <button class="nav-item" data-tab="settings">⚙ Ajustes</button>
     </nav>
-
 </main>
 <script src="app.js"></script>
 </body>
