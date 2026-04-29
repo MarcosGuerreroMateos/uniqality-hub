@@ -324,7 +324,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnLogout = document.getElementById('btn-logout');
     if(btnLogout) btnLogout.onclick = () => location.reload();
 
-    // NUEVO BOTÓN DE RESET DEL DASHBOARD
+    // BOTÓN DE RESET DEL DASHBOARD
     const btnResetDash = document.getElementById('btn-reset-dashboard');
     if(btnResetDash) {
         btnResetDash.onclick = () => {
@@ -623,10 +623,13 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // =========================================================================
-    // LLAMADA REAL A HUGGING FACE (TripoSR) Y SISTEMA DE RESPALDO (Fallback)
+    // LLAMADA REAL A HUGGING FACE CON TU TOKEN (SIN CASCO DE EMERGENCIA)
     // =========================================================================
     async function callAIApi() {
         console.log("🧠 Iniciando conexión con Servidores Hugging Face...");
+        
+        const HF_TOKEN = "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";
+
         stopCamera();
         showScannerState('processing');
         
@@ -641,10 +644,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const base64Image = scannerState.photos[0];
 
-            // Petición directa al Space de Hugging Face
             const response = await fetch("https://stabilityai-triposr.hf.space/run/predict", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${HF_TOKEN}`
+                },
                 body: JSON.stringify({
                     data: [
                         base64Image, 
@@ -655,10 +660,10 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
             if (!response.ok) {
-                throw new Error("El servidor gratuito está lleno o dormido.");
+                throw new Error("El servidor de Hugging Face está saturado. Inténtalo de nuevo.");
             }
 
-            procStep.innerText = "IA procesando geometría espacial 3D...";
+            procStep.innerText = "IA esculpiendo la torre en 3D...";
             procFill.style.width = "60%";
 
             const responseData = await response.json();
@@ -668,41 +673,38 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             if (!finalModelUrl) {
-                throw new Error("Formato de respuesta desconocido de la IA.");
+                throw new Error("La IA no devolvió un modelo válido.");
             }
 
-            procStep.innerText = "¡Generación completa! Preparando visualización...";
+            procStep.innerText = "¡Torre escaneada! Preparando visualización...";
             procFill.style.width = "100%";
+
+            try {
+                localStorage.setItem('soc_saved_model', finalModelUrl);
+            } catch(e) {
+                console.warn("Memoria local llena.");
+            }
+
+            init3D(localStorage.getItem('theme') || 'green');
+
+            showScannerState('viewer');
+            setTimeout(() => {
+                loadReal3DModel(finalModelUrl); 
+            }, 150);
 
         } catch (error) {
             console.error("Error en HF API:", error);
             
-            procStep.innerText = "⚠ SERVIDOR HF OCUPADO. CARGANDO RESPALDO DE SEGURIDAD...";
-            procStep.style.color = "var(--warn)";
-            procFill.style.background = "var(--warn)";
-            procFill.style.width = "80%";
-
-            // Si falla, cargamos el casco de emergencia
-            finalModelUrl = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf';
-            
-            await new Promise(r => setTimeout(r, 3000));
+            procStep.innerText = `⚠ ${error.message}`;
+            procStep.style.color = "var(--danger)";
+            procFill.style.background = "var(--danger)";
             procFill.style.width = "100%";
+
+            setTimeout(() => {
+                resetScannerState();
+                showScannerState('idle');
+            }, 4000);
         }
-
-        // GUARDAMOS EL MODELO EN LA MEMORIA DEL NAVEGADOR
-        try {
-            localStorage.setItem('soc_saved_model', finalModelUrl);
-        } catch(e) {
-            console.warn("Memoria local llena, no se pudo guardar permanentemente.");
-        }
-
-        // Actualizamos el modelo del Dashboard en segundo plano
-        init3D(localStorage.getItem('theme') || 'green');
-
-        showScannerState('viewer');
-        setTimeout(() => {
-            loadReal3DModel(finalModelUrl); 
-        }, 150);
     }
 
     // =========================================================================
@@ -853,7 +855,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // =========================================================================
-    // NODO DIGITAL 3D (DASHBOARD) - AHORA CARGA EL MODELO GUARDADO SI EXISTE
+    // NODO DIGITAL 3D (DASHBOARD) - CARGA EL MODELO GUARDADO SI EXISTE
     // =========================================================================
     function init3D(currentTheme) {
         const container = document.getElementById('canvas-3d');
@@ -873,7 +875,6 @@ document.addEventListener("DOMContentLoaded", function() {
             camera.position.z = 3.5;
             camera.position.y = 0.5;
 
-            // Revisamos si hay un modelo guardado por la IA en la memoria
             const savedModel = localStorage.getItem('soc_saved_model');
             const btnResetDash = document.getElementById('btn-reset-dashboard');
 
@@ -929,7 +930,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 globalMesh3D.add(roof);
             }
             
-            // Controles de rotación del Dashboard
             renderer.domElement.addEventListener('mousedown', (e) => { isDragging = true; });
             renderer.domElement.addEventListener('mousemove', (e) => {
                 if (isDragging && globalMesh3D) {
