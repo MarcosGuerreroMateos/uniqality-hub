@@ -199,7 +199,7 @@ Paquetes pérdidos: 0.02%
 Estado: ESTABLE ✓
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
         en: `NETWORK STATUS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━��━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Interface: eth0
 Local IP: 192.168.1.100
 Gateway: 192.168.1.1
@@ -521,6 +521,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const btnGyroView = document.getElementById('btn-gyro-view');
         const btnResetView = document.getElementById('btn-reset-view');
         const btnNewScan = document.getElementById('btn-new-scan');
+        const btnReplayScan = document.getElementById('btn-replay-scan');
 
         if(btnStartScan) {
             btnStartScan.onclick = async function() {
@@ -579,7 +580,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 
                 generate3DModel();
                 showScannerState('viewer');
-                showViewer360();
+                
+                // 🔥 SOLUCIÓN: Esperamos 100ms para que el CSS renderice el div y tenga dimensiones
+                setTimeout(() => {
+                    showViewer360();
+                }, 100);
             };
         }
 
@@ -600,6 +605,12 @@ document.addEventListener("DOMContentLoaded", function() {
             btnNewScan.onclick = () => {
                 resetScannerState();
                 showScannerState('idle');
+            };
+        }
+
+        if(btnReplayScan) {
+            btnReplayScan.onclick = () => {
+                replayCapturedVideo();
             };
         }
 
@@ -826,13 +837,21 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         
+        // 🔥 SOLUCIÓN: Forzamos altura mínima para que el lienzo no colapse a 0
+        viewer.style.width = '100%';
+        viewer.style.height = '100%';
+        viewer.style.minHeight = '350px';
         viewer.innerHTML = '';
         
+        // Si por algún motivo clientWidth es 0, usamos el ancho de la ventana
+        const width = viewer.clientWidth || (window.innerWidth - 40);
+        const height = viewer.clientHeight || 350;
+        
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, viewer.clientWidth / viewer.clientHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         
-        renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+        renderer.setSize(width, height);
         viewer.appendChild(renderer.domElement);
         
         const geometry = new THREE.SphereGeometry(500, 64, 32);
@@ -866,6 +885,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         
         const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true; // 🔥 CRÍTICO: Avisa a THREE.js que la textura está lista
+        
         const material = new THREE.MeshBasicMaterial({ map: texture });
         const sphere = new THREE.Mesh(geometry, material);
         scene.add(sphere);
@@ -875,6 +896,7 @@ document.addEventListener("DOMContentLoaded", function() {
         let isDrag = false;
         let prevPos = { x: 0, y: 0 };
         
+        // Controles de escritorio
         renderer.domElement.addEventListener('mousedown', () => { isDrag = true; });
         renderer.domElement.addEventListener('mousemove', (e) => {
             if(isDrag) {
@@ -886,6 +908,22 @@ document.addEventListener("DOMContentLoaded", function() {
             prevPos = { x: e.clientX, y: e.clientY };
         });
         renderer.domElement.addEventListener('mouseup', () => { isDrag = false; });
+
+        // Controles Táctiles (Móvil)
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            isDrag = true;
+            prevPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }, {passive: true});
+        renderer.domElement.addEventListener('touchmove', (e) => {
+            if(isDrag) {
+                const deltaX = e.touches[0].clientX - prevPos.x;
+                const deltaY = e.touches[0].clientY - prevPos.y;
+                camera.rotation.y -= deltaX * 0.005;
+                camera.rotation.x -= deltaY * 0.005;
+            }
+            prevPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }, {passive: true});
+        renderer.domElement.addEventListener('touchend', () => { isDrag = false; });
         
         const animate = () => {
             requestAnimationFrame(animate);
@@ -927,6 +965,62 @@ document.addEventListener("DOMContentLoaded", function() {
             renderer360: null,
             captureInterval: null
         };
+    }
+
+    function replayCapturedVideo() {
+        if(scannerState.frames.length === 0) {
+            alert("⚠ No hay grabación disponible.");
+            return;
+        }
+
+        const viewerWrap = document.querySelector('.viewer-wrap');
+        let replayCanvas = document.getElementById('replay-canvas');
+
+        if(!replayCanvas) {
+            replayCanvas = document.createElement('canvas');
+            replayCanvas.id = 'replay-canvas';
+            replayCanvas.style.position = 'absolute';
+            replayCanvas.style.top = '0';
+            replayCanvas.style.left = '0';
+            replayCanvas.style.width = '100%';
+            replayCanvas.style.height = '100%';
+            replayCanvas.style.objectFit = 'contain';
+            replayCanvas.style.backgroundColor = '#000';
+            replayCanvas.style.zIndex = '50';
+            viewerWrap.appendChild(replayCanvas);
+        }
+
+        replayCanvas.style.display = 'block';
+        const ctx = replayCanvas.getContext('2d');
+        let currentFrame = 0;
+
+        function drawNextFrame() {
+            if(currentFrame >= scannerState.frames.length) {
+                setTimeout(() => {
+                    replayCanvas.style.display = 'none';
+                }, 1000);
+                return;
+            }
+
+            const frame = scannerState.frames[currentFrame];
+            
+            if(replayCanvas.width !== frame.data.width) {
+                replayCanvas.width = frame.data.width;
+                replayCanvas.height = frame.data.height;
+            }
+
+            ctx.putImageData(frame.data, 0, 0);
+
+            ctx.fillStyle = "red";
+            ctx.font = "bold 30px 'Share Tech Mono'";
+            ctx.fillText(`● REC - FRAME ${currentFrame + 1}/${scannerState.frames.length}`, 40, 60);
+
+            currentFrame++;
+            setTimeout(drawNextFrame, 150); 
+        }
+
+        console.log("▶ Iniciando Replay de", scannerState.frames.length, "frames");
+        drawNextFrame();
     }
 
     function init3D(currentTheme) {
@@ -1005,7 +1099,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         } catch(e) { console.error("3D Error:", e); }
     }
-// ===== REGISTRO DEL SERVICE WORKER =====
+    
+    // ===== REGISTRO DEL SERVICE WORKER =====
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/uniqality-hub/sw.js')
@@ -1013,4 +1108,5 @@ document.addEventListener("DOMContentLoaded", function() {
                 .catch(err => console.error('⚠ Error al registrar Service Worker:', err));
         });
     }
+
 });
