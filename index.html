@@ -8,11 +8,38 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00ff99">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Uniqality">
+    <style>
+        .photo-slots {
+            position: absolute; top: 70px; left: 0; right: 0;
+            display: flex; justify-content: center; gap: 10px; z-index: 10;
+        }
+        .slot {
+            width: 40px; height: 50px; border: 1px dashed var(--neon);
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.5); color: var(--muted); font-size: 10px;
+            border-radius: 4px; overflow: hidden; position: relative;
+        }
+        .slot.filled { border-style: solid; background: var(--neon-dim); color: var(--neon); }
+        .slot img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        
+        .btn-capture {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: transparent; border: 3px solid var(--neon);
+            display: flex; justify-content: center; align-items: center;
+            margin: 0 auto; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-capture .inner-circle {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: rgba(0,255,153,0.2); transition: all 0.2s;
+        }
+        .btn-capture:active .inner-circle { background: var(--neon); transform: scale(0.9); }
+    </style>
 </head>
 <body>
 
@@ -92,11 +119,20 @@
         <section id="tab-dashboard" class="tab-content active">
             <div class="section-title"><span class="sec-icon">⊞</span> PANEL_CONTROL<span class="sec-tag">LIVE</span></div>
             <div class="dashboard-grid">
+                
+                <!-- NODO DIGITAL 3D (ACTUALIZADO) -->
                 <div class="card model-card">
-                    <div class="card-header"><span>NODO_DIGITAL_3D</span><span class="card-badge green">ACTIVO</span></div>
+                    <div class="card-header">
+                        <span>NODO_DIGITAL_3D</span>
+                        <div style="display: flex; gap: 6px;">
+                            <button id="btn-reset-dashboard" class="hidden" style="background: rgba(255,51,85,0.1); border: 1px solid var(--danger); color: var(--danger); font-size: 8px; padding: 2px 6px; cursor: pointer; border-radius: 2px; font-family: 'Share Tech Mono', monospace;">RESETEAR</button>
+                            <span class="card-badge green">ACTIVO</span>
+                        </div>
+                    </div>
                     <div id="canvas-3d"></div>
                     <div class="card-footer">Arrastrar para rotar</div>
                 </div>
+
                 <div class="card events-card">
                     <div class="card-header"><span>EVENTOS_RECIENTES</span><span class="card-badge pulse">EN VIVO</span></div>
                     <div id="event-feed" class="feed"></div>
@@ -124,9 +160,9 @@
             </div>
         </section>
 
-        <!-- ESCÁNER 3D -->
+        <!-- ESCÁNER 3D IA -->
         <section id="tab-scanner" class="tab-content">
-            <div class="section-title"><span class="sec-icon">⬡</span> ESCÁNER_3D_HOGAR<span class="sec-tag" id="scanner-tag">LISTO</span></div>
+            <div class="section-title"><span class="sec-icon">⬡</span> GENERADOR_IA_3D<span class="sec-tag" id="scanner-tag">HF_API</span></div>
 
             <!-- Idle -->
             <div id="scanner-idle" class="scanner-state">
@@ -135,18 +171,18 @@
                         <div class="sib-ring r1"></div>
                         <div class="sib-ring r2"></div>
                         <div class="sib-ring r3"></div>
-                        <span class="sib-glyph">⬡</span>
+                        <span class="sib-glyph">🧠</span>
                     </div>
-                    <h2 class="scanner-title">ESCÁNER PANORÁMICO 3D</h2>
-                    <p class="scanner-desc">Genera una vista 360° inmersiva de tu hogar usando la cámara y el giroscopio del teléfono. Mueve el dispositivo lentamente por la habitación para capturar tu entorno.</p>
+                    <h2 class="scanner-title">IA FOTOGRAMÉTRICA</h2>
+                    <p class="scanner-desc">Toma 4 fotografías de los muros principales de la ubicación. La Inteligencia Artificial reconstruirá la geometría y devolverá un modelo 3D detallado de la habitación.</p>
                     <div class="scanner-tips">
-                        <div class="tip-item"><span class="tip-num">01</span><span>Colócate en el centro de la habitación</span></div>
-                        <div class="tip-item"><span class="tip-num">02</span><span>Rota lentamente apuntando a todas las paredes</span></div>
-                        <div class="tip-item"><span class="tip-num">03</span><span>Incluye suelo y techo para mayor cobertura</span></div>
-                        <div class="tip-item"><span class="tip-num">04</span><span>El minimap muestra las zonas capturadas</span></div>
+                        <div class="tip-item"><span class="tip-num">01</span><span>Toma una foto de la pared Norte</span></div>
+                        <div class="tip-item"><span class="tip-num">02</span><span>Toma una foto de la pared Sur</span></div>
+                        <div class="tip-item"><span class="tip-num">03</span><span>Toma una foto de la pared Este</span></div>
+                        <div class="tip-item"><span class="tip-num">04</span><span>Toma una foto de la pared Oeste</span></div>
                     </div>
                     <button class="scan-start-btn" id="btn-start-scan">
-                        <span>⬡</span> INICIAR ESCÁNER
+                        <span>📷</span> INICIAR CAPTURAS
                     </button>
                 </div>
             </div>
@@ -159,74 +195,52 @@
                         <span class="perm-icon">🔐</span>
                     </div>
                     <h3>PERMISOS REQUERIDOS</h3>
-                    <p class="perm-desc">El escáner necesita acceso a la cámara y al sensor de orientation del dispositivo.</p>
+                    <p class="perm-desc">La aplicación necesita acceso a la cámara para capturar los datos.</p>
                     <div class="perm-list">
                         <div class="perm-item" id="perm-cam">
                             <span class="perm-status pend">◌</span>
-                            <div class="perm-info"><span>Cámara trasera</span><small>Para capturar el entorno</small></div>
-                        </div>
-                        <div class="perm-item" id="perm-gyro">
-                            <span class="perm-status pend">◌</span>
-                            <div class="perm-info"><span>Giroscopio / Orientación</span><small>Para saber hacia dónde apuntas</small></div>
+                            <div class="perm-info"><span>Cámara trasera</span><small>Para tomar las fotos base</small></div>
                         </div>
                     </div>
                     <p id="perm-msg" class="perm-msg">Solicitando acceso a la cámara...</p>
-                    <button class="perm-retry-btn hidden" id="btn-perm-retry">↺ REINTENTAR PERMISOS</button>
+                    <button class="perm-retry-btn hidden" id="btn-perm-retry">↺ REINTENTAR</button>
                     <button class="perm-cancel-btn" id="btn-perm-cancel">Cancelar</button>
                 </div>
             </div>
 
-            <!-- Escaneando -->
+            <!-- Escaneando / Tomando Fotos -->
             <div id="scanner-scanning" class="scanner-state hidden">
-                <div class="scan-view">
-                    <video id="scan-video" autoplay muted playsinline></video>
-                    <canvas id="scan-canvas" class="hidden"></canvas>
-                    <div class="scan-hud">
-                        <div class="hud-corners">
-                            <div class="hc tl"></div><div class="hc tr"></div>
-                            <div class="hc bl"></div><div class="hc br"></div>
+                <div class="scan-view" style="display: flex; flex-direction: column; height: 100%;">
+                    
+                    <div style="position: relative; flex: 1; overflow: hidden; background: #000; border: 1px solid var(--border);">
+                        <video id="scan-video" autoplay muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                        <canvas id="scan-canvas" class="hidden"></canvas>
+                        
+                        <div class="photo-slots">
+                            <div class="slot" id="slot-1">1</div>
+                            <div class="slot" id="slot-2">2</div>
+                            <div class="slot" id="slot-3">3</div>
+                            <div class="slot" id="slot-4">4</div>
                         </div>
+
                         <div class="hud-crosshair">
-                            <div class="hc-h"></div><div class="hc-v"></div>
-                            <div class="hc-dot"></div>
-                        </div>
-                        <div class="hud-top">
-                            <div class="hud-compass-wrap">
-                                <div class="hud-compass" id="hud-compass">
-                                    <div class="compass-ring"></div>
-                                    <div class="compass-needle" id="compass-needle"></div>
-                                    <span class="compass-n">N</span>
-                                </div>
-                            </div>
-                            <div class="hud-angles">
-                                <div id="hud-az">AZ 0°</div>
-                                <div id="hud-el">EL 0°</div>
-                            </div>
-                        </div>
-                        <div class="hud-bottom">
-                            <div class="hud-coverage">
-                                <div class="cov-label">COBERTURA <span id="cov-pct">0%</span></div>
-                                <div class="cov-bar"><div class="cov-fill" id="cov-fill"></div></div>
-                            </div>
-                            <canvas id="minimap-canvas" class="hud-minimap" width="120" height="60"></canvas>
+                            <div class="hc-h"></div><div class="hc-v"></div><div class="hc-dot"></div>
                         </div>
                     </div>
-                    <div class="zone-flash" id="zone-flash"></div>
-                </div>
-                <div class="scan-controls">
-                    <div class="scan-stats-row">
-                        <div class="ss-item"><span id="zones-captured">0</span><small>ZONAS</small></div>
-                        <div class="ss-item"><span id="frames-total">0</span><small>FRAMES</small></div>
-                        <div class="ss-item green"><span id="scan-quality">—</span><small>CALIDAD</small></div>
-                    </div>
-                    <div class="scan-btn-row">
-                        <button class="scan-stop-btn" id="btn-stop-scan">✕ CANCELAR</button>
-                        <button class="scan-finish-btn accent" id="btn-finish-scan">✓ PROCESAR MODELO</button>
+
+                    <div class="scan-controls" style="padding: 20px; text-align: center; background: var(--card);">
+                        <p id="capture-instruction" style="color: var(--neon); margin-bottom: 15px; font-size: 14px; letter-spacing: 2px;">APUNTA A LA PARED 1 Y DISPARA</p>
+                        
+                        <div class="btn-capture" id="btn-take-photo">
+                            <div class="inner-circle"></div>
+                        </div>
+
+                        <button class="scan-stop-btn" id="btn-stop-scan" style="margin-top: 20px;">✕ CANCELAR OPERACIÓN</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Procesando -->
+            <!-- Procesando (IA Real) -->
             <div id="scanner-processing" class="scanner-state hidden">
                 <div class="proc-box">
                     <div class="proc-icon-wrap">
@@ -237,44 +251,36 @@
                                 <animateTransform attributeName="transform" type="rotate" dur="1s" repeatCount="indefinite" from="0 30 30" to="360 30 30"/>
                             </circle>
                         </svg>
-                        <span class="proc-glyph">⬡</span>
+                        <span class="proc-glyph">🧠</span>
                     </div>
-                    <h3>PROCESANDO ESCENA 3D</h3>
-                    <p id="proc-step">Ensamblando panorámica equirectangular...</p>
-                    <div class="proc-bar"><div class="proc-fill" id="proc-fill"></div></div>
-                    <p class="proc-hint">Esto puede tardar unos segundos</p>
+                    <h3>EJECUTANDO SOLICITUD A IA</h3>
+                    <p id="proc-step">Enviando imágenes al servidor...</p>
+                    <div class="proc-bar"><div class="proc-fill" id="proc-fill" style="width: 10%;"></div></div>
+                    <p class="proc-hint">Este proceso puede tardar varios segundos dependiendo de la carga del servidor.</p>
                 </div>
             </div>
 
-            <!-- Visor -->
+            <!-- Visor 3D Final -->
             <div id="scanner-viewer" class="scanner-state hidden">
                 <div class="viewer-wrap">
                     <div id="pano-viewer"></div>
                     <div class="viewer-overlay">
                         <div class="vo-top">
-                            <div class="vo-badge">PANORAMA_3D_ACTIVO</div>
+                            <div class="vo-badge">MODELO 3D IMPORTADO</div>
                             <div class="vo-stats">
-                                <span id="vh-zones">0 ZONAS</span>
-                                <span>·</span>
-                                <span id="vh-coverage">0%</span>
+                                <span class="green">✓ RECONSTRUCCIÓN COMPLETADA</span>
                             </div>
                         </div>
                         <div class="vo-hint" id="vo-hint">
-                            <span>👆 Arrastra para mirar alrededor</span>
+                            <span>👆 Arrastra para inspeccionar el modelo generado</span>
                         </div>
                     </div>
                     <div class="viewer-toolbar">
-                        <button class="vtb-btn" id="btn-gyro-view" title="Giroscopio">
-                            <span>📱</span><span class="vtb-label">GYRO</span>
+                        <button class="vtb-btn" id="btn-reset-view" title="Centrar">
+                            <span>⊕</span><span class="vtb-label">CENTRAR</span>
                         </button>
-                        <button class="vtb-btn" id="btn-reset-view" title="Resetear">
-                            <span>⊕</span><span class="vtb-label">RESET</span>
-                        </button>
-                        <button class="vtb-btn" id="btn-replay-scan" title="Ver Grabación">
-                            <span>▶</span><span class="vtb-label">REPLAY</span>
-                        </button>
-                        <button class="vtb-btn accent" id="btn-new-scan" title="Nuevo escan">
-                            <span>⬡</span><span class="vtb-label">NUEVO</span>
+                        <button class="vtb-btn accent" id="btn-new-scan" title="Nuevo Escaneo">
+                            <span>⬡</span><span class="vtb-label">NUEVO ESCANEO</span>
                         </button>
                     </div>
                 </div>
