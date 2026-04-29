@@ -581,7 +581,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 generate3DModel();
                 showScannerState('viewer');
                 
-                // 🔥 SOLUCIÓN: Esperamos 100ms para que el CSS renderice el div y tenga dimensiones
+                // Esperamos 100ms para que el CSS renderice el div y tenga dimensiones
                 setTimeout(() => {
                     showViewer360();
                 }, 100);
@@ -759,7 +759,8 @@ document.addEventListener("DOMContentLoaded", function() {
         
         scannerState.zones.add(zoneKey);
         
-        const coverage = Math.min((scannerState.zones.size / 64) * 100, 100);
+        // 🔥 Rebajamos de 64 a 16 zonas para que el 100% sea realista en un aula
+        const coverage = Math.min((scannerState.zones.size / 16) * 100, 100);
         scannerState.coverage = coverage;
         
         const covPct = document.getElementById('cov-pct');
@@ -806,13 +807,15 @@ document.addEventListener("DOMContentLoaded", function() {
             const imageData = frame.data;
             const data = imageData.data;
             
-            for(let i = 0; i < data.length; i += 40) {
+            // 🔥 Bajamos el salto de 40 a 16 para obtener el triple de puntos
+            for(let i = 0; i < data.length; i += 16) {
                 const r = data[i];
                 const g = data[i + 1];
                 const b = data[i + 2];
                 const brightness = (r + g + b) / 3;
                 
-                if(brightness > 50) {
+                // 🔥 Bajamos el umbral de brillo a 30 para no descartar paredes oscuras
+                if(brightness > 30) {
                     const angle = (index / Math.max(scannerState.frames.length, 1)) * Math.PI * 2;
                     const distance = (brightness / 255) * 3;
                     const verticalPos = (Math.random() - 0.5) * 2;
@@ -837,13 +840,12 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         
-        // 🔥 SOLUCIÓN: Forzamos altura mínima para que el lienzo no colapse a 0
+        // Forzamos altura mínima para que el lienzo no colapse a 0
         viewer.style.width = '100%';
         viewer.style.height = '100%';
         viewer.style.minHeight = '350px';
         viewer.innerHTML = '';
         
-        // Si por algún motivo clientWidth es 0, usamos el ancho de la ventana
         const width = viewer.clientWidth || (window.innerWidth - 40);
         const height = viewer.clientHeight || 350;
         
@@ -871,8 +873,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 const y = ((Math.asin(point.y) / Math.PI + 0.5)) * canvas.height;
                 
                 if(x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
-                    ctx.fillStyle = `rgb(${Math.round(point.color.r * 255)},${Math.round(point.color.g * 255)},${Math.round(point.color.b * 255)})`;
-                    ctx.fillRect(x, y, 3, 3);
+                    // 🔥 Puntos más grandes (6x6) y translúcidos (0.6) para fusionar la imagen
+                    ctx.fillStyle = `rgba(${Math.round(point.color.r * 255)},${Math.round(point.color.g * 255)},${Math.round(point.color.b * 255)}, 0.6)`;
+                    ctx.fillRect(x, y, 6, 6);
                 }
             });
         } else {
@@ -885,7 +888,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         
         const texture = new THREE.CanvasTexture(canvas);
-        texture.needsUpdate = true; // 🔥 CRÍTICO: Avisa a THREE.js que la textura está lista
+        texture.needsUpdate = true;
         
         const material = new THREE.MeshBasicMaterial({ map: texture });
         const sphere = new THREE.Mesh(geometry, material);
@@ -896,7 +899,6 @@ document.addEventListener("DOMContentLoaded", function() {
         let isDrag = false;
         let prevPos = { x: 0, y: 0 };
         
-        // Controles de escritorio
         renderer.domElement.addEventListener('mousedown', () => { isDrag = true; });
         renderer.domElement.addEventListener('mousemove', (e) => {
             if(isDrag) {
@@ -909,7 +911,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
         renderer.domElement.addEventListener('mouseup', () => { isDrag = false; });
 
-        // Controles Táctiles (Móvil)
         renderer.domElement.addEventListener('touchstart', (e) => {
             isDrag = true;
             prevPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
