@@ -1,6 +1,71 @@
+// DICCIONARIO COMPLETO (RESTAURADO)
 const i18n = {
-    es: { loading: "// INICIALIZANDO PROTOCOLOS...", auth_title: "ACCESO RESTRINGIDO", login_btn: "VALIDAR" },
-    en: { loading: "// INITIALIZING...", auth_title: "RESTRICTED ACCESS", login_btn: "VALIDATE" }
+    es: { 
+        loading: "// INICIALIZANDO PROTOCOLOS SOC...",
+        auth_title: "ACCESO RESTRINGIDO", 
+        auth_sub: "// IDENTIFICACIÓN DE AGENTE SOC",
+        login_btn: "VALIDAR CREDENCIALES",
+        login_err: "ERROR: CREDENCIALES NO VÁLIDAS",
+        sys_active: "● SISTEMA_ACTIVO",
+        recent_events: "EVENTOS_RECIENTES",
+        panel: "PANEL_CONTROL",
+        cameras: "VIGILANCIA_CÁMARAS",
+        scanner: "ESCÁNER_3D",
+        terminal: "TERMINAL_SOC",
+        settings: "CONFIGURACIÓN", 
+        lang_system: "IDIOMA DEL SISTEMA",
+        language: "LANGUAGE",
+        lang_desc: "Interfaz del panel SOC",
+        theme: "TEMA DE NEÓN",
+        green_theme: "VERDE",
+        cyan_theme: "CIAN",
+        magenta_theme: "MAGENTA",
+        orange_theme: "NARANJA",
+        session: "SESIÓN ACTIVA",
+        agent: "AGENTE",
+        level: "NIVEL",
+        uptime: "UPTIME",
+        logout: "DESCONECTAR SESIÓN",
+        nav_panel: "Panel",
+        nav_cameras: "Cámaras",
+        nav_scanner: "Escáner",
+        nav_terminal: "Terminal",
+        nav_settings: "Ajustes",
+        signal_lost: "SEÑAL_PERDIDA"
+    },
+    en: { 
+        loading: "// INITIALIZING SOC PROTOCOLS...",
+        auth_title: "RESTRICTED ACCESS", 
+        auth_sub: "// AGENT IDENTIFICATION REQUIRED",
+        login_btn: "VALIDATE CREDENTIALS",
+        login_err: "ERROR: INVALID CREDENTIALS",
+        sys_active: "● SYSTEM_ACTIVE",
+        recent_events: "RECENT EVENTS",
+        panel: "CONTROL_PANEL",
+        cameras: "CAMERA_SURVEILLANCE",
+        scanner: "3D_SCANNER",
+        terminal: "TERMINAL_SOC",
+        settings: "SYSTEM SETTINGS", 
+        lang_system: "SYSTEM LANGUAGE",
+        language: "LANGUAGE",
+        lang_desc: "SOC panel interface",
+        theme: "NEON THEME",
+        green_theme: "GREEN",
+        cyan_theme: "CYAN",
+        magenta_theme: "MAGENTA",
+        orange_theme: "ORANGE",
+        session: "ACTIVE SESSION",
+        agent: "AGENT",
+        level: "LEVEL",
+        uptime: "UPTIME",
+        logout: "DISCONNECT SESSION",
+        nav_panel: "Panel",
+        nav_cameras: "Cameras",
+        nav_scanner: "Scanner",
+        nav_terminal: "Terminal",
+        nav_settings: "Settings",
+        signal_lost: "SIGNAL_LOST"
+    }
 };
 
 let globalMesh3D = null;
@@ -12,22 +77,26 @@ let scannerState = { isScanning: false, videoStream: null, photos: [] };
 
 document.addEventListener("DOMContentLoaded", function() {
     
-    // Splash & Login
+    // 1. INICIALIZACIÓN DE ESTADO
     setTimeout(() => {
         document.getElementById('splash-screen').classList.add('hidden');
         document.getElementById('login-screen').classList.remove('hidden');
     }, 2500);
 
     const theme = localStorage.getItem('theme') || 'green';
+    const lang = localStorage.getItem('lang') || 'es';
     applyTheme(theme);
+    applyLanguage(lang);
 
-    // Reloj
+    const langSelect = document.getElementById('lang-toggle');
+    if(langSelect) langSelect.value = lang;
+
     setInterval(() => {
         const clock = document.getElementById('current-time');
         if(clock) clock.innerText = new Date().toLocaleTimeString();
     }, 1000);
 
-    // Login logic
+    // 2. LOGIN
     document.getElementById('btn-login').onclick = () => {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('main-app').classList.remove('hidden');
@@ -36,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function() {
         initScanner();
     };
 
-    // Navegación
+    // 3. NAVEGACIÓN Y AJUSTES
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -46,7 +115,10 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     });
 
-    // Temas
+    if(langSelect) {
+        langSelect.onchange = (e) => applyLanguage(e.target.value);
+    }
+
     document.querySelectorAll('.theme-card').forEach(opt => {
         opt.onclick = function() {
             document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
@@ -55,15 +127,26 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     });
 
-    // Reset Dashboard
+    document.getElementById('btn-logout').onclick = () => location.reload();
+
     const btnResetDash = document.getElementById('btn-reset-dashboard');
     if(btnResetDash) {
         btnResetDash.onclick = () => {
-            if(confirm("¿Restaurar nodo predeterminado?")) {
+            if(confirm(lang === 'es' ? "¿Restaurar nodo predeterminado?" : "Restore default node?")) {
                 localStorage.removeItem('soc_saved_model');
                 init3D(localStorage.getItem('theme') || 'green');
             }
         };
+    }
+
+    // --- FUNCIONES CORE ---
+    function applyLanguage(l) {
+        localStorage.setItem('lang', l);
+        document.documentElement.setAttribute('lang', l);
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.dataset.i18n;
+            if(i18n[l] && i18n[l][key]) el.innerText = i18n[l][key];
+        });
     }
 
     function applyTheme(t) {
@@ -75,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // --- TERMINAL DINÁMICO ---
+    // --- TERMINAL DINÁMICA (RESTAURADA Y TRADUCIDA) ---
     function setupTerminal() {
         const log = document.getElementById('terminal-log');
         const box = document.querySelector('.terminal-box');
@@ -104,36 +187,39 @@ document.addEventListener("DOMContentLoaded", function() {
             log.innerHTML += `<div>[${new Date().toLocaleTimeString()}] soc@hub:~$ ${cmd}</div>`;
             if(t === 'clear') { log.innerHTML = ''; return; }
             
-            const out = await getOutput(t);
+            const lang = localStorage.getItem('lang') || 'es';
+            const out = await getRealOutput(t, lang);
             out.split('\n').forEach(l => {
                 log.innerHTML += `<div class="log-line">${l}</div>`;
             });
             log.scrollTop = log.scrollHeight;
         }
 
-        async function getOutput(cmd) {
+        async function getRealOutput(cmd, l) {
+            const isEs = l === 'es';
             switch(cmd) {
-                case 'help': return "Comandos: status, devices, network, history, uptime, clear";
+                case 'help': 
+                    return isEs ? "Comandos: status, devices, network, history, uptime, clear" : "Commands: status, devices, network, history, uptime, clear";
                 case 'status': 
                     const gl = !!document.createElement('canvas').getContext('webgl');
-                    return `Sistema: ${navigator.onLine ? 'ONLINE' : 'OFFLINE'}\nWebGL: ${gl ? 'OK' : 'FAIL'}\nPlataforma: ${navigator.platform}`;
+                    return isEs ? `Red: ${navigator.onLine ? 'ONLINE' : 'OFFLINE'}\nWebGL: ${gl ? 'OK' : 'ERROR'}\nPlataforma: ${navigator.platform}` : `Network: ${navigator.onLine ? 'ONLINE' : 'OFFLINE'}\nWebGL: ${gl ? 'OK' : 'ERROR'}\nPlatform: ${navigator.platform}`;
                 case 'devices':
                     const devs = await navigator.mediaDevices.enumerateDevices();
-                    return devs.map(d => `• [${d.kind.toUpperCase()}] ${d.label || 'Accesorio'}`).join('\n');
+                    return devs.map(d => `• [${d.kind.toUpperCase()}] ${d.label || (isEs ? 'Accesorio' : 'Accessory')}`).join('\n');
                 case 'network':
                     const n = navigator.connection;
-                    return `Tipo: ${n ? n.effectiveType : 'WIFI'}\nBajada: ${n ? n.downlink + 'Mbps' : '300Mbps'}`;
+                    return isEs ? `Tipo: ${n ? n.effectiveType : 'WIFI'}\nBajada: ${n ? n.downlink + 'Mbps' : '300Mbps'}` : `Type: ${n ? n.effectiveType : 'WIFI'}\nDownlink: ${n ? n.downlink + 'Mbps' : '300Mbps'}`;
                 case 'history':
-                    return localStorage.getItem('soc_saved_model') ? "✓ Modelo IA detectado en caché." : "No hay modelos guardados.";
+                    return localStorage.getItem('soc_saved_model') ? (isEs ? "✓ Modelo IA guardado." : "✓ AI Model saved.") : (isEs ? "Caché vacío." : "Cache empty.");
                 case 'uptime':
                     const s = Math.floor((Date.now() - startTime)/1000);
-                    return `Activo: ${Math.floor(s/60)}min ${s%60}seg`;
-                default: return `Comando no válido. Escriba 'help'`;
+                    return isEs ? `Activo: ${Math.floor(s/60)}min ${s%60}seg` : `Uptime: ${Math.floor(s/60)}min ${s%60}seg`;
+                default: return isEs ? "Comando desconocido. Escribe 'help'." : "Unknown command. Type 'help'.";
             }
         }
     }
 
-    // --- ESCÁNER CON API HUGGING FACE ---
+    // --- ESCÁNER E IA (MANTENIDO) ---
     function initScanner() {
         const btnStart = document.getElementById('btn-start-scan');
         const btnTake = document.getElementById('btn-take-photo');
@@ -145,7 +231,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 scannerState.videoStream = s;
                 document.getElementById('scan-video').srcObject = s;
                 showScannerState('scanning');
-            } catch(e) { alert("Error cámara"); showScannerState('idle'); }
+            } catch(e) { alert("Camera Error"); showScannerState('idle'); }
         };
         btnTake.onclick = () => {
             if(scannerState.photos.length >= 4) return;
@@ -165,14 +251,16 @@ document.addEventListener("DOMContentLoaded", function() {
         showScannerState('processing');
         const proc = document.getElementById('proc-step');
         const fill = document.getElementById('proc-fill');
+        const isEs = localStorage.getItem('lang') === 'es';
         
         try {
-            proc.innerText = "Enviando a Hugging Face..."; fill.style.width = "30%";
+            proc.innerText = isEs ? "Enviando a Hugging Face..." : "Sending to Hugging Face..."; 
+            fill.style.width = "30%";
             const res = await fetch("https://stabilityai-triposr.hf.space/run/predict", {
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${TOKEN}` },
                 body: JSON.stringify({ data: [scannerState.photos[0], true, 85] })
             });
-            if(!res.ok) throw new Error("Servidor lleno");
+            if(!res.ok) throw new Error("Server busy");
             fill.style.width = "70%";
             const d = await res.json();
             const url = d.data[0].url || d.data[0].data;
@@ -181,7 +269,7 @@ document.addEventListener("DOMContentLoaded", function() {
             showScannerState('viewer');
             loadRealModel(url);
         } catch(e) {
-            proc.innerText = "ERROR SERVIDOR. REINTENTAR.";
+            proc.innerText = isEs ? "ERROR SERVIDOR. REINTENTAR." : "SERVER ERROR. RETRY.";
             setTimeout(() => showScannerState('idle'), 3000);
         }
         scannerState.videoStream.getTracks().forEach(t => t.stop());
@@ -208,6 +296,7 @@ document.addEventListener("DOMContentLoaded", function() {
         anim();
     }
 
+    // --- 3D DASHBOARD (MANTENIDO) ---
     function init3D(t) {
         const v = document.getElementById('canvas-3d'); v.innerHTML = '';
         const s = new THREE.Scene();
