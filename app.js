@@ -77,15 +77,8 @@ let isTerminalFocused = false;
 // ESTADO DEL ESCÁNER
 let scannerState = {
     isScanning: false,
-    frames: [],
-    zones: new Set(),
-    coverage: 0,
     videoStream: null,
-    deviceOrientation: { alpha: 0, beta: 0, gamma: 0 },
-    pointCloud: [],
-    panorama: null,
-    renderer360: null,
-    captureInterval: null
+    photos: [] 
 };
 
 // COMANDOS DEL TERMINAL SIMULADOS
@@ -259,26 +252,6 @@ Integrity Verification: 150K files
 [████████████████████████████████████████] 100% - Valid ✓
 ╚════════════════════════════════════════════════════════════════╝
 RESULT: SYSTEM SECURE - No threats detected`
-    },
-    uptime: {
-        es: `ESTADÍSTICAS DE ACTIVIDAD
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Tiempo de ejecución: 342 días, 15 horas, 23 minutos
-Arranques totales: 28
-Última reinicialización: 342 días atrás
-Disponibilidad: 99.98%
-MTBF (Mean Time Between Failures): 2848 horas
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✓ SISTEMA ULTRA ESTABLE`,
-        en: `UPTIME STATISTICS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Execution time: 342 days, 15 hours, 23 minutes
-Total boots: 28
-Last restart: 342 days ago
-Availability: 99.98%
-MTBF (Mean Time Between Failures): 2848 hours
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✓ ULTRA STABLE SYSTEM`
     }
 };
 
@@ -351,6 +324,17 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnLogout = document.getElementById('btn-logout');
     if(btnLogout) btnLogout.onclick = () => location.reload();
 
+    // NUEVO BOTÓN DE RESET DEL DASHBOARD
+    const btnResetDash = document.getElementById('btn-reset-dashboard');
+    if(btnResetDash) {
+        btnResetDash.onclick = () => {
+            if(confirm("⚠ ¿Eliminar el modelo IA guardado y restaurar el nodo de seguridad predeterminado?")) {
+                localStorage.removeItem('soc_saved_model'); 
+                init3D(localStorage.getItem('theme') || 'green'); 
+            }
+        };
+    }
+
     function applyLanguage(l) {
         localStorage.setItem('lang', l);
         document.documentElement.setAttribute('lang', l);
@@ -364,14 +348,15 @@ document.addEventListener("DOMContentLoaded", function() {
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem('theme', t);
         
-        if(globalMesh3D) {
+        // El tema solo se aplica a la casa predeterminada si existe
+        if(globalMesh3D && !localStorage.getItem('soc_saved_model')) {
             let hexColor = 0x00ff99;
             if(t === 'cyan') hexColor = 0x00e5ff;
             if(t === 'magenta') hexColor = 0xff00ff;
             if(t === 'orange') hexColor = 0xff6600;
             
             globalMesh3D.children.forEach(child => {
-                child.material.color.setHex(hexColor);
+                if(child.material) child.material.color.setHex(hexColor);
             });
         }
     }
@@ -393,27 +378,17 @@ document.addEventListener("DOMContentLoaded", function() {
         feed.innerHTML = `<div class="event-card" style="border-left: 3px solid var(--neon); padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05);"><strong>AUTH_OK</strong><br><small>Usuario: AGENTE_01 | Hora: ${new Date().toLocaleTimeString()}</small></div>`;
     }
 
-    // --- SETUP DEL TERMINAL INTERACTIVO ---
     function setupTerminal() {
         const terminalBody = document.getElementById('terminal-log');
         const terminalBox = document.querySelector('.terminal-box');
-        
         if(!terminalBody || !terminalBox) return;
 
         terminalBox.setAttribute('tabindex', '0');
-
-        terminalBox.addEventListener('click', () => {
-            isTerminalFocused = true;
-            terminalBox.style.outline = 'none';
-        });
-
-        terminalBox.addEventListener('blur', () => {
-            isTerminalFocused = false;
-        });
+        terminalBox.addEventListener('click', () => { isTerminalFocused = true; terminalBox.style.outline = 'none'; });
+        terminalBox.addEventListener('blur', () => { isTerminalFocused = false; });
 
         document.addEventListener('keydown', (e) => {
             if(!isTerminalFocused) return;
-
             if(e.key === 'Enter') {
                 e.preventDefault();
                 executeCommand(terminalInput);
@@ -442,7 +417,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         function executeCommand(cmd) {
             const trimmedCmd = cmd.trim().toLowerCase();
-            
             terminalBody.innerHTML += `<div class="log-line">[${new Date().toLocaleTimeString()}] soc@hub:~$ ${escapeHtml(cmd)}</div>`;
             
             if(trimmedCmd === 'clear') {
@@ -450,7 +424,6 @@ document.addEventListener("DOMContentLoaded", function() {
             } else if(trimmedCmd !== '') {
                 const lang = localStorage.getItem('lang') || 'es';
                 const output = getCommandOutput(trimmedCmd, lang);
-                
                 output.split('\n').forEach(line => {
                     if(line.trim()) {
                         const lineClass = line.includes('[HIGH]') ? 'err' : 
@@ -460,7 +433,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 });
             }
-            
             terminalBody.scrollTop = terminalBody.scrollHeight;
         }
 
@@ -487,7 +459,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 { type: '[ERR]', text: lang === 'es' ? 'Fallo de conexión' : 'Connection failed' },
                 { type: '[OK]', text: lang === 'es' ? 'Operación completada' : 'Operation completed' }
             ];
-            
             let result = '';
             for(let i = 0; i < num; i++) {
                 const log = logTypes[Math.floor(Math.random() * logTypes.length)];
@@ -499,40 +470,29 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function escapeHtml(text) {
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
         return text.replace(/[&<>"']/g, m => map[m]);
     }
 
-    // ===== FUNCIONES DEL ESCÁNER 3D =====
+    // ===== FUNCIONES DEL ESCÁNER IA (INTEGRACIÓN HUGGING FACE GRATUITA) =====
     window.initScanner = function() {
-        console.log("🔍 Inicializando escáner...");
+        console.log("🔍 Inicializando Escáner API (Hugging Face)...");
         
         const btnStartScan = document.getElementById('btn-start-scan');
         const btnStopScan = document.getElementById('btn-stop-scan');
-        const btnFinishScan = document.getElementById('btn-finish-scan');
         const btnPermRetry = document.getElementById('btn-perm-retry');
         const btnPermCancel = document.getElementById('btn-perm-cancel');
-        const btnGyroView = document.getElementById('btn-gyro-view');
+        const btnTakePhoto = document.getElementById('btn-take-photo');
         const btnResetView = document.getElementById('btn-reset-view');
         const btnNewScan = document.getElementById('btn-new-scan');
-        const btnReplayScan = document.getElementById('btn-replay-scan');
 
         if(btnStartScan) {
             btnStartScan.onclick = async function() {
-                console.log("✅ Click en INICIAR ESCÁNER");
                 resetScannerState();
                 showScannerState('perm');
-                
                 try {
                     await requestCameraPermission();
-                    await requestGyroPermission();
-                    startScanning();
+                    startCamera();
                 } catch(err) {
                     console.error('❌ Error:', err);
                     document.getElementById('btn-perm-retry').classList.remove('hidden');
@@ -541,402 +501,328 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         if(btnPermCancel) {
-            btnPermCancel.onclick = () => {
-                console.log("❌ Cancelar permisos");
-                stopScanning();
-                showScannerState('idle');
-            };
+            btnPermCancel.onclick = () => { stopCamera(); showScannerState('idle'); };
         }
 
         if(btnPermRetry) {
             btnPermRetry.onclick = async () => {
-                try {
-                    await requestCameraPermission();
-                    startScanning();
-                } catch(err) {
-                    console.error('Error:', err);
-                }
+                try { await requestCameraPermission(); startCamera(); } 
+                catch(err) { console.error('Error:', err); }
             };
         }
 
         if(btnStopScan) {
-            btnStopScan.onclick = () => {
-                console.log("⏹️ Detener escaneo");
-                stopScanning();
-                showScannerState('idle');
-            };
+            btnStopScan.onclick = () => { stopCamera(); showScannerState('idle'); };
         }
 
-        if(btnFinishScan) {
-            btnFinishScan.onclick = async () => {
-                console.log("✓ Finalizar escaneo");
-                stopScanning();
-                showScannerState('processing');
-                
-                for(let i = 1; i <= 100; i += 10) {
-                    document.getElementById('proc-fill').style.width = i + '%';
-                    await new Promise(r => setTimeout(r, 200));
-                }
-                
-                generate3DModel();
-                showScannerState('viewer');
-                
-                // Esperamos 100ms para que el CSS renderice el div y tenga dimensiones
-                setTimeout(() => {
-                    showViewer360();
-                }, 100);
-            };
-        }
-
-        if(btnGyroView) {
-            btnGyroView.onclick = () => {
-                const lang = localStorage.getItem('lang') || 'es';
-                alert(lang === 'es' ? '📱 Modo giroscópico - Mueve el dispositivo para ver alrededor' : '📱 Gyro mode - Move your device to look around');
-            };
+        if(btnTakePhoto) {
+            btnTakePhoto.onclick = () => { takePhoto(); };
         }
 
         if(btnResetView) {
             btnResetView.onclick = () => {
-                showViewer360();
+                if(window.loaded3DModel) {
+                    window.loaded3DModel.rotation.set(0, 0, 0); 
+                }
             };
         }
 
         if(btnNewScan) {
-            btnNewScan.onclick = () => {
-                resetScannerState();
-                showScannerState('idle');
-            };
+            btnNewScan.onclick = () => { resetScannerState(); showScannerState('idle'); };
         }
-
-        if(btnReplayScan) {
-            btnReplayScan.onclick = () => {
-                replayCapturedVideo();
-            };
-        }
-
-        window.addEventListener('deviceorientation', (event) => {
-            scannerState.deviceOrientation = {
-                alpha: event.alpha || 0,
-                beta: event.beta || 0,
-                gamma: event.gamma || 0
-            };
-            updateCompass();
-        });
     };
 
     async function requestCameraPermission() {
         return new Promise(async (resolve, reject) => {
             const msg = document.getElementById('perm-msg');
             const permCam = document.getElementById('perm-cam');
-            
             if(msg) msg.innerText = '📷 Solicitando acceso a la cámara...';
-            
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment', 
-                        width: { ideal: 1280 }, 
-                        height: { ideal: 720 } 
-                    } 
-                });
-                
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 scannerState.videoStream = stream;
-                
                 if(permCam) {
                     permCam.querySelector('.perm-status').classList.remove('pend');
                     permCam.querySelector('.perm-status').classList.add('ok');
                     permCam.querySelector('.perm-status').innerText = '✓';
                 }
-                
-                if(msg) msg.innerText = '✓ Cámara otorgada. Solicitando giroscopio...';
-                console.log("✓ Cámara obtenida");
                 resolve();
             } catch(err) {
                 if(msg) msg.innerText = '⚠ Acceso a cámara denegado';
-                console.error("❌ Error cámara:", err);
                 reject(err);
             }
         });
     }
 
-    async function requestGyroPermission() {
-        return new Promise((resolve) => {
-            const permGyro = document.getElementById('perm-gyro');
-            
-            if('DeviceOrientationEvent' in window) {
-                if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    DeviceOrientationEvent.requestPermission()
-                        .then(permissionState => {
-                            if(permissionState === 'granted') {
-                                if(permGyro) {
-                                    permGyro.querySelector('.perm-status').classList.remove('pend');
-                                    permGyro.querySelector('.perm-status').classList.add('ok');
-                                    permGyro.querySelector('.perm-status').innerText = '✓';
-                                }
-                                console.log("✓ Giroscopio otorgado");
-                            }
-                            resolve();
-                        })
-                        .catch(() => {
-                            console.log("⚠ Giroscopio no disponible");
-                            resolve();
-                        });
-                } else {
-                    if(permGyro) {
-                        permGyro.querySelector('.perm-status').classList.remove('pend');
-                        permGyro.querySelector('.perm-status').classList.add('ok');
-                        permGyro.querySelector('.perm-status').innerText = '✓';
-                    }
-                    console.log("✓ Giroscopio disponible");
-                    resolve();
-                }
-            } else {
-                console.log("⚠ DeviceOrientation no disponible");
-                resolve();
-            }
-        });
-    }
-
-    function startScanning() {
-        console.log("🎥 Iniciando captura...");
+    function startCamera() {
         showScannerState('scanning');
-        
         const video = document.getElementById('scan-video');
-        const canvas = document.getElementById('scan-canvas');
-        
         if(video && scannerState.videoStream) {
             video.srcObject = scannerState.videoStream;
             video.play().catch(e => console.error("Error play:", e));
-            
-            scannerState.captureInterval = setInterval(() => {
-                if(!scannerState.isScanning) {
-                    clearInterval(scannerState.captureInterval);
-                    return;
-                }
-                
-                if(canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    ctx.drawImage(video, 0, 0);
-                    
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    scannerState.frames.push({
-                        data: imageData,
-                        orientation: { ...scannerState.deviceOrientation },
-                        timestamp: Date.now()
-                    });
-                    
-                    detectZone();
-                    updateScanStats();
-                }
-            }, 500);
         }
-        
         scannerState.isScanning = true;
-        const finishBtn = document.getElementById('btn-finish-scan');
-        if(finishBtn) finishBtn.disabled = false;
+        updatePhotoUI();
     }
 
-    function stopScanning() {
-        console.log("⏹️ Deteniendo escaneo...");
+    function stopCamera() {
         scannerState.isScanning = false;
-        
-        if(scannerState.captureInterval) {
-            clearInterval(scannerState.captureInterval);
-        }
-        
         if(scannerState.videoStream) {
             scannerState.videoStream.getTracks().forEach(track => track.stop());
             scannerState.videoStream = null;
         }
     }
 
-    function detectZone() {
-        const alpha = Math.round(scannerState.deviceOrientation.alpha / 45);
-        const beta = Math.round(scannerState.deviceOrientation.beta / 45);
-        const zoneKey = `${alpha}-${beta}`;
-        
-        scannerState.zones.add(zoneKey);
-        
-        // 🔥 Rebajamos de 64 a 16 zonas para que el 100% sea realista en un aula
-        const coverage = Math.min((scannerState.zones.size / 16) * 100, 100);
-        scannerState.coverage = coverage;
-        
-        const covPct = document.getElementById('cov-pct');
-        const covFill = document.getElementById('cov-fill');
-        
-        if(covPct) covPct.innerText = Math.round(coverage) + '%';
-        if(covFill) covFill.style.width = coverage + '%';
-    }
+    function takePhoto() {
+        if(scannerState.photos.length >= 4) return;
 
-    function updateScanStats() {
-        const zonesEl = document.getElementById('zones-captured');
-        const framesEl = document.getElementById('frames-total');
-        const qualityEl = document.getElementById('scan-quality');
+        const video = document.getElementById('scan-video');
+        const canvas = document.getElementById('scan-canvas');
         
-        if(zonesEl) zonesEl.innerText = scannerState.zones.size;
-        if(framesEl) framesEl.innerText = scannerState.frames.length;
-        
-        let quality = '—';
-        if(scannerState.frames.length > 50) quality = 'EXCELENTE';
-        else if(scannerState.frames.length > 30) quality = 'BUENA';
-        else if(scannerState.frames.length > 10) quality = 'MEDIA';
-        
-        if(qualityEl) qualityEl.innerText = quality;
-    }
-
-    function updateCompass() {
-        const needle = document.getElementById('compass-needle');
-        if(needle) {
-            needle.style.transform = `rotate(${scannerState.deviceOrientation.alpha}deg)`;
-        }
-        
-        const azEl = document.getElementById('hud-az');
-        const el = document.getElementById('hud-el');
-        
-        if(azEl) azEl.innerText = `AZ ${Math.round(scannerState.deviceOrientation.alpha)}°`;
-        if(el) el.innerText = `EL ${Math.round(scannerState.deviceOrientation.beta)}°`;
-    }
-
-    function generate3DModel() {
-        console.log("🔧 Generando modelo 3D...");
-        if(scannerState.frames.length === 0) return;
-        
-        scannerState.frames.forEach((frame, index) => {
-            const imageData = frame.data;
-            const data = imageData.data;
+        if(video && canvas) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
             
-            // 🔥 Bajamos el salto de 40 a 16 para obtener el triple de puntos
-            for(let i = 0; i < data.length; i += 16) {
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                const brightness = (r + g + b) / 3;
-                
-                // 🔥 Bajamos el umbral de brillo a 30 para no descartar paredes oscuras
-                if(brightness > 30) {
-                    const angle = (index / Math.max(scannerState.frames.length, 1)) * Math.PI * 2;
-                    const distance = (brightness / 255) * 3;
-                    const verticalPos = (Math.random() - 0.5) * 2;
-                    
-                    scannerState.pointCloud.push({
-                        x: Math.cos(angle) * distance,
-                        y: verticalPos,
-                        z: Math.sin(angle) * distance,
-                        color: new THREE.Color(r/255, g/255, b/255)
-                    });
+            // Comprimir la imagen para enviarla a Hugging Face
+            const imgDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+            scannerState.photos.push(imgDataUrl);
+            
+            updatePhotoUI();
+
+            if(scannerState.photos.length === 4) {
+                setTimeout(callAIApi, 500);
+            }
+        }
+    }
+
+    function updatePhotoUI() {
+        const instruction = document.getElementById('capture-instruction');
+        const num = scannerState.photos.length + 1;
+        
+        if(instruction) {
+            if(num <= 4) {
+                instruction.innerText = `APUNTA A LA PARED ${num} Y DISPARA`;
+            } else {
+                instruction.innerText = `PREPARANDO PAQUETE DE DATOS...`;
+            }
+        }
+
+        for(let i = 0; i < 4; i++) {
+            const slot = document.getElementById(`slot-${i+1}`);
+            if(slot) {
+                if(i < scannerState.photos.length) {
+                    slot.classList.add('filled');
+                    slot.innerHTML = `<img src="${scannerState.photos[i]}">`;
+                } else {
+                    slot.classList.remove('filled');
+                    slot.innerHTML = `${i+1}`;
                 }
             }
-        });
-        console.log("✓ Puntos generados:", scannerState.pointCloud.length);
+        }
     }
 
-    function showViewer360() {
-        console.log("📺 Mostrando visor 360...");
+    // =========================================================================
+    // LLAMADA REAL A HUGGING FACE (TripoSR) Y SISTEMA DE RESPALDO (Fallback)
+    // =========================================================================
+    async function callAIApi() {
+        console.log("🧠 Iniciando conexión con Servidores Hugging Face...");
+        stopCamera();
+        showScannerState('processing');
+        
+        const procStep = document.getElementById('proc-step');
+        const procFill = document.getElementById('proc-fill');
+        
+        let finalModelUrl = null;
+
+        try {
+            procStep.innerText = "Contactando API de Hugging Face (TripoSR)...";
+            procFill.style.width = "20%";
+
+            const base64Image = scannerState.photos[0];
+
+            // Petición directa al Space de Hugging Face
+            const response = await fetch("https://stabilityai-triposr.hf.space/run/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    data: [
+                        base64Image, 
+                        true,        
+                        85           
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("El servidor gratuito está lleno o dormido.");
+            }
+
+            procStep.innerText = "IA procesando geometría espacial 3D...";
+            procFill.style.width = "60%";
+
+            const responseData = await response.json();
+            
+            if (responseData && responseData.data && responseData.data[0]) {
+               finalModelUrl = responseData.data[0].url || responseData.data[0].data;
+            }
+
+            if (!finalModelUrl) {
+                throw new Error("Formato de respuesta desconocido de la IA.");
+            }
+
+            procStep.innerText = "¡Generación completa! Preparando visualización...";
+            procFill.style.width = "100%";
+
+        } catch (error) {
+            console.error("Error en HF API:", error);
+            
+            procStep.innerText = "⚠ SERVIDOR HF OCUPADO. CARGANDO RESPALDO DE SEGURIDAD...";
+            procStep.style.color = "var(--warn)";
+            procFill.style.background = "var(--warn)";
+            procFill.style.width = "80%";
+
+            // Si falla, cargamos el casco de emergencia
+            finalModelUrl = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf';
+            
+            await new Promise(r => setTimeout(r, 3000));
+            procFill.style.width = "100%";
+        }
+
+        // GUARDAMOS EL MODELO EN LA MEMORIA DEL NAVEGADOR
+        try {
+            localStorage.setItem('soc_saved_model', finalModelUrl);
+        } catch(e) {
+            console.warn("Memoria local llena, no se pudo guardar permanentemente.");
+        }
+
+        // Actualizamos el modelo del Dashboard en segundo plano
+        init3D(localStorage.getItem('theme') || 'green');
+
+        showScannerState('viewer');
+        setTimeout(() => {
+            loadReal3DModel(finalModelUrl); 
+        }, 150);
+    }
+
+    // =========================================================================
+    // VISOR GLTF (IMPORTA EL MODELO A LA WEB)
+    // =========================================================================
+    function loadReal3DModel(modelUrl) {
+        console.log("📺 Cargando modelo 3D real desde:", modelUrl);
         const viewer = document.getElementById('pano-viewer');
         if(!viewer || typeof THREE === 'undefined') {
             console.error("❌ THREE.js no disponible o viewer no existe");
             return;
         }
         
-        // Forzamos altura mínima para que el lienzo no colapse a 0
         viewer.style.width = '100%';
         viewer.style.height = '100%';
-        viewer.style.minHeight = '350px';
+        viewer.style.minHeight = '400px';
         viewer.innerHTML = '';
         
         const width = viewer.clientWidth || (window.innerWidth - 40);
-        const height = viewer.clientHeight || 350;
+        const height = viewer.clientHeight || 400;
         
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        scene.background = new THREE.Color(0x05070a); 
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 7.5);
+        scene.add(directionalLight);
+
+        const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         
         renderer.setSize(width, height);
+        renderer.outputEncoding = THREE.sRGBEncoding; 
         viewer.appendChild(renderer.domElement);
         
-        const geometry = new THREE.SphereGeometry(500, 64, 32);
-        geometry.scale(-1, 1, 1);
+        const modelContainer = new THREE.Group();
+        window.loaded3DModel = modelContainer; 
+        scene.add(modelContainer);
+
+        const loader = new THREE.GLTFLoader();
         
-        const canvas = document.createElement('canvas');
-        canvas.width = 2048;
-        canvas.height = 1024;
-        const ctx = canvas.getContext('2d');
-        
-        ctx.fillStyle = '#1a1a2e';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        if(scannerState.pointCloud.length > 0) {
-            scannerState.pointCloud.forEach(point => {
-                const x = ((Math.atan2(point.z, point.x) / Math.PI + 1) / 2) * canvas.width;
-                const y = ((Math.asin(point.y) / Math.PI + 0.5)) * canvas.height;
+        loader.load(
+            modelUrl,
+            function (gltf) {
+                console.log("✓ Modelo 3D descargado y montado en escena");
+                const model = gltf.scene;
                 
-                if(x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
-                    // 🔥 Puntos más grandes (6x6) y translúcidos (0.6) para fusionar la imagen
-                    ctx.fillStyle = `rgba(${Math.round(point.color.r * 255)},${Math.round(point.color.g * 255)},${Math.round(point.color.b * 255)}, 0.6)`;
-                    ctx.fillRect(x, y, 6, 6);
+                const box = new THREE.Box3().setFromObject(model);
+                const size = box.getSize(new THREE.Vector3()).length();
+                const center = box.getCenter(new THREE.Vector3());
+                
+                model.position.x += (model.position.x - center.x);
+                model.position.y += (model.position.y - center.y);
+                model.position.z += (model.position.z - center.z);
+                
+                const scale = 5 / size;
+                model.scale.set(scale, scale, scale);
+
+                modelContainer.add(model);
+            },
+            function (xhr) {
+                const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                if(percent > 0 && percent <= 100) {
+                   console.log(`Descargando datos 3D... ${percent}%`);
                 }
-            });
-        } else {
-            for(let i = 0; i < canvas.width; i += 20) {
-                for(let j = 0; j < canvas.height; j += 20) {
-                    ctx.fillStyle = `hsl(${(i/canvas.width)*360}, 80%, 50%)`;
-                    ctx.fillRect(i, j, 15, 15);
-                }
+            },
+            function (error) {
+                console.error('⚠ Error pintando el modelo GLTF:', error);
             }
-        }
+        );
         
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.needsUpdate = true;
-        
-        const material = new THREE.MeshBasicMaterial({ map: texture });
-        const sphere = new THREE.Mesh(geometry, material);
-        scene.add(sphere);
-        
-        camera.position.set(0, 0, 0);
+        camera.position.set(0, 0, 8);
         
         let isDrag = false;
         let prevPos = { x: 0, y: 0 };
         
-        renderer.domElement.addEventListener('mousedown', () => { isDrag = true; });
-        renderer.domElement.addEventListener('mousemove', (e) => {
-            if(isDrag) {
-                const deltaX = e.clientX - prevPos.x;
-                const deltaY = e.clientY - prevPos.y;
-                camera.rotation.y -= deltaX * 0.005;
-                camera.rotation.x -= deltaY * 0.005;
-            }
-            prevPos = { x: e.clientX, y: e.clientY };
-        });
-        renderer.domElement.addEventListener('mouseup', () => { isDrag = false; });
-
         renderer.domElement.addEventListener('touchstart', (e) => {
             isDrag = true;
             prevPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         }, {passive: true});
+        
         renderer.domElement.addEventListener('touchmove', (e) => {
             if(isDrag) {
                 const deltaX = e.touches[0].clientX - prevPos.x;
                 const deltaY = e.touches[0].clientY - prevPos.y;
-                camera.rotation.y -= deltaX * 0.005;
-                camera.rotation.x -= deltaY * 0.005;
+                modelContainer.rotation.y += deltaX * 0.01;
+                modelContainer.rotation.x += deltaY * 0.01;
             }
             prevPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         }, {passive: true});
+        
         renderer.domElement.addEventListener('touchend', () => { isDrag = false; });
+        
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            isDrag = true;
+            prevPos = { x: e.clientX, y: e.clientY };
+        });
+        
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if(isDrag) {
+                const deltaX = e.clientX - prevPos.x;
+                const deltaY = e.clientY - prevPos.y;
+                modelContainer.rotation.y += deltaX * 0.01;
+                modelContainer.rotation.x += deltaY * 0.01;
+            }
+            prevPos = { x: e.clientX, y: e.clientY };
+        });
+        
+        renderer.domElement.addEventListener('mouseup', () => { isDrag = false; });
         
         const animate = () => {
             requestAnimationFrame(animate);
+            if(!isDrag && modelContainer.children.length > 0) {
+                modelContainer.rotation.y += 0.002;
+            }
             renderer.render(scene, camera);
         };
         animate();
-        
-        const vhZones = document.getElementById('vh-zones');
-        const vhCoverage = document.getElementById('vh-coverage');
-        
-        if(vhZones) vhZones.innerText = scannerState.zones.size + ' ZONAS';
-        if(vhCoverage) vhCoverage.innerText = Math.round(scannerState.coverage) + '%';
     }
 
     function showScannerState(state) {
@@ -945,85 +831,30 @@ document.addEventListener("DOMContentLoaded", function() {
             const el = document.getElementById(`scanner-${s}`);
             if(el) el.classList.add('hidden');
         });
-        
         const el = document.getElementById(`scanner-${state}`);
         if(el) {
             el.classList.remove('hidden');
-            console.log(`📍 Estado del escáner: ${state}`);
         }
     }
 
     function resetScannerState() {
         scannerState = {
             isScanning: false,
-            frames: [],
-            zones: new Set(),
-            coverage: 0,
             videoStream: null,
-            deviceOrientation: { alpha: 0, beta: 0, gamma: 0 },
-            pointCloud: [],
-            panorama: null,
-            renderer360: null,
-            captureInterval: null
+            photos: [] 
         };
+        for(let i=1; i<=4; i++) {
+            const slot = document.getElementById(`slot-${i}`);
+            if(slot) {
+                slot.classList.remove('filled');
+                slot.innerHTML = `${i}`;
+            }
+        }
     }
 
-    function replayCapturedVideo() {
-        if(scannerState.frames.length === 0) {
-            alert("⚠ No hay grabación disponible.");
-            return;
-        }
-
-        const viewerWrap = document.querySelector('.viewer-wrap');
-        let replayCanvas = document.getElementById('replay-canvas');
-
-        if(!replayCanvas) {
-            replayCanvas = document.createElement('canvas');
-            replayCanvas.id = 'replay-canvas';
-            replayCanvas.style.position = 'absolute';
-            replayCanvas.style.top = '0';
-            replayCanvas.style.left = '0';
-            replayCanvas.style.width = '100%';
-            replayCanvas.style.height = '100%';
-            replayCanvas.style.objectFit = 'contain';
-            replayCanvas.style.backgroundColor = '#000';
-            replayCanvas.style.zIndex = '50';
-            viewerWrap.appendChild(replayCanvas);
-        }
-
-        replayCanvas.style.display = 'block';
-        const ctx = replayCanvas.getContext('2d');
-        let currentFrame = 0;
-
-        function drawNextFrame() {
-            if(currentFrame >= scannerState.frames.length) {
-                setTimeout(() => {
-                    replayCanvas.style.display = 'none';
-                }, 1000);
-                return;
-            }
-
-            const frame = scannerState.frames[currentFrame];
-            
-            if(replayCanvas.width !== frame.data.width) {
-                replayCanvas.width = frame.data.width;
-                replayCanvas.height = frame.data.height;
-            }
-
-            ctx.putImageData(frame.data, 0, 0);
-
-            ctx.fillStyle = "red";
-            ctx.font = "bold 30px 'Share Tech Mono'";
-            ctx.fillText(`● REC - FRAME ${currentFrame + 1}/${scannerState.frames.length}`, 40, 60);
-
-            currentFrame++;
-            setTimeout(drawNextFrame, 150); 
-        }
-
-        console.log("▶ Iniciando Replay de", scannerState.frames.length, "frames");
-        drawNextFrame();
-    }
-
+    // =========================================================================
+    // NODO DIGITAL 3D (DASHBOARD) - AHORA CARGA EL MODELO GUARDADO SI EXISTE
+    // =========================================================================
     function init3D(currentTheme) {
         const container = document.getElementById('canvas-3d');
         if(!container || typeof THREE === 'undefined') return;
@@ -1037,31 +868,68 @@ document.addEventListener("DOMContentLoaded", function() {
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
             
-            let hexColor = 0x00ff99;
-            if(currentTheme === 'cyan') hexColor = 0x00e5ff;
-            if(currentTheme === 'magenta') hexColor = 0xff00ff;
-            if(currentTheme === 'orange') hexColor = 0xff6600;
-            
-            const material = new THREE.MeshBasicMaterial({ color: hexColor, wireframe: true });
-            
             globalMesh3D = new THREE.Group();
-
-            const baseGeo = new THREE.BoxGeometry(1.5, 1.2, 1.5);
-            const base = new THREE.Mesh(baseGeo, material);
-            base.position.y = -0.6;
-
-            const roofGeo = new THREE.ConeGeometry(1.2, 1, 4);
-            const roof = new THREE.Mesh(roofGeo, material);
-            roof.position.y = 0.5;
-            roof.rotation.y = Math.PI / 4;
-
-            globalMesh3D.add(base);
-            globalMesh3D.add(roof);
-            
             scene.add(globalMesh3D);
             camera.position.z = 3.5;
             camera.position.y = 0.5;
+
+            // Revisamos si hay un modelo guardado por la IA en la memoria
+            const savedModel = localStorage.getItem('soc_saved_model');
+            const btnResetDash = document.getElementById('btn-reset-dashboard');
+
+            if(savedModel) {
+                // --- MODO IA: CARGAMOS EL MODELO REAL GUARDADO ---
+                if(btnResetDash) btnResetDash.classList.remove('hidden'); 
+                
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(5, 10, 7.5);
+                scene.add(directionalLight);
+
+                const loader = new THREE.GLTFLoader();
+                loader.load(savedModel, function(gltf) {
+                    const model = gltf.scene;
+                    
+                    const box = new THREE.Box3().setFromObject(model);
+                    const size = box.getSize(new THREE.Vector3()).length();
+                    const center = box.getCenter(new THREE.Vector3());
+                    
+                    model.position.x += (model.position.x - center.x);
+                    model.position.y += (model.position.y - center.y);
+                    model.position.z += (model.position.z - center.z);
+                    
+                    const scale = 2.5 / size; 
+                    model.scale.set(scale, scale, scale);
+
+                    globalMesh3D.add(model);
+                });
+
+            } else {
+                // --- MODO DEFECTO: LA CASA DE NEÓN ---
+                if(btnResetDash) btnResetDash.classList.add('hidden'); 
+
+                let hexColor = 0x00ff99;
+                if(currentTheme === 'cyan') hexColor = 0x00e5ff;
+                if(currentTheme === 'magenta') hexColor = 0xff00ff;
+                if(currentTheme === 'orange') hexColor = 0xff6600;
+                
+                const material = new THREE.MeshBasicMaterial({ color: hexColor, wireframe: true });
+
+                const baseGeo = new THREE.BoxGeometry(1.5, 1.2, 1.5);
+                const base = new THREE.Mesh(baseGeo, material);
+                base.position.y = -0.6;
+
+                const roofGeo = new THREE.ConeGeometry(1.2, 1, 4);
+                const roof = new THREE.Mesh(roofGeo, material);
+                roof.position.y = 0.5;
+                roof.rotation.y = Math.PI / 4;
+
+                globalMesh3D.add(base);
+                globalMesh3D.add(roof);
+            }
             
+            // Controles de rotación del Dashboard
             renderer.domElement.addEventListener('mousedown', (e) => { isDragging = true; });
             renderer.domElement.addEventListener('mousemove', (e) => {
                 if (isDragging && globalMesh3D) {
